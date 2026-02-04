@@ -522,26 +522,49 @@ function showAlert(message, type = 'info') {
 
 // 프로젝트 파일 보기 (관리자 페이지)
 async function viewProjectFile(projectId) {
+    console.log('viewProjectFile 호출됨:', projectId);
     try {
         let projects = [];
         const localProjects = localStorage.getItem('projects');
         if (localProjects) {
             projects = JSON.parse(localProjects);
+            console.log('로컬 스토리지에서 로드됨:', projects.length, '개 프로젝트');
         } else {
             const response = await fetch('data/projects.json');
             projects = await response.json();
+            console.log('JSON 파일에서 로드됨:', projects.length, '개 프로젝트');
         }
         
         const project = projects.find(p => p.id === projectId);
+        console.log('프로젝트 정보:', project);
+        
         if (!project || !project.files || project.files.length === 0) {
+            console.warn('파일 없음:', project ? project.files : 'project not found');
             showAlert('업로드된 파일이 없습니다.', 'error');
             return;
         }
         
         const file = project.files[0];
+        console.log('파일 정보:', {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            hasData: !!file.data,
+            dataLength: file.data ? file.data.length : 0
+        });
+        
+        if (!file.data) {
+            showAlert('파일 데이터가 없습니다.', 'error');
+            return;
+        }
         
         // Base64 데이터를 Blob으로 변환
         const base64Data = file.data.split(',')[1];
+        if (!base64Data) {
+            showAlert('파일 데이터 형식이 잘못되었습니다.', 'error');
+            return;
+        }
+        
         const mimeType = file.type || 'application/octet-stream';
         const byteCharacters = atob(base64Data);
         const byteNumbers = new Array(byteCharacters.length);
@@ -552,6 +575,8 @@ async function viewProjectFile(projectId) {
         const blob = new Blob([byteArray], { type: mimeType });
         const blobUrl = URL.createObjectURL(blob);
         
+        console.log('Blob URL 생성됨:', blobUrl);
+        
         // 새 창에서 열기
         window.open(blobUrl, '_blank');
         
@@ -560,6 +585,6 @@ async function viewProjectFile(projectId) {
         
     } catch (error) {
         console.error('파일 보기 오류:', error);
-        showAlert('파일을 열 수 없습니다.', 'error');
+        showAlert('파일을 열 수 없습니다: ' + error.message, 'error');
     }
 }

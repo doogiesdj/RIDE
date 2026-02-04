@@ -212,26 +212,32 @@ function closeProjectSummaryModal() {
 
 // 사업 요약 보기
 async function viewProjectSummary(projectId) {
+    console.log('viewProjectSummary 호출됨:', projectId);
     const project = projectsData.find(p => p.id === projectId);
+    console.log('프로젝트 정보:', project);
+    
     if (!project) {
         showNotification('프로젝트 정보를 찾을 수 없습니다.', 'error');
         return;
     }
     
     if (!project.files || project.files.length === 0) {
+        console.warn('파일 없음:', project.files);
         showNotification('업로드된 사업 요약 파일이 없습니다.', 'error');
         return;
     }
+    
+    console.log('파일 정보:', project.files[0]);
     
     const summaryFile = project.files[0];
     const modal = document.getElementById('projectSummaryModal');
     const modalTitle = document.getElementById('modalSummaryTitle');
     const modalBody = document.getElementById('modalSummaryBody');
     
-    if (!modal) {
-        // 모달이 없으면 생성
-        createSummaryModal();
-        return viewProjectSummary(projectId); // 재귀 호출
+    if (!modal || !modalTitle || !modalBody) {
+        console.error('모달 요소를 찾을 수 없습니다.');
+        showNotification('페이지 오류가 발생했습니다. 페이지를 새로고침하세요.', 'error');
+        return;
     }
     
     // 모달 제목 설정
@@ -239,13 +245,22 @@ async function viewProjectSummary(projectId) {
     
     // 파일 확장자 확인
     const fileExt = summaryFile.name.toLowerCase().split('.').pop();
+    console.log('파일 확장자:', fileExt);
     
     // Base64 데이터를 Blob URL로 변환
     let blobUrl = '';
     if (summaryFile.data) {
         try {
+            console.log('Base64 데이터 변환 시작...');
             const base64Data = summaryFile.data.split(',')[1];
+            if (!base64Data) {
+                throw new Error('Base64 데이터가 없습니다');
+            }
+            console.log('Base64 데이터 길이:', base64Data.length);
+            
             const mimeType = summaryFile.type || 'application/octet-stream';
+            console.log('MIME 타입:', mimeType);
+            
             const byteCharacters = atob(base64Data);
             const byteNumbers = new Array(byteCharacters.length);
             for (let i = 0; i < byteCharacters.length; i++) {
@@ -254,13 +269,15 @@ async function viewProjectSummary(projectId) {
             const byteArray = new Uint8Array(byteNumbers);
             const blob = new Blob([byteArray], { type: mimeType });
             blobUrl = URL.createObjectURL(blob);
+            console.log('Blob URL 생성됨:', blobUrl);
         } catch (error) {
             console.error('파일 변환 오류:', error);
-            showNotification('파일을 불러올 수 없습니다.', 'error');
+            showNotification('파일을 불러올 수 없습니다: ' + error.message, 'error');
             return;
         }
     } else {
         // 기존 경로 방식 (하위 호환성)
+        console.log('Base64 데이터 없음, 경로 사용:', summaryFile.path);
         blobUrl = summaryFile.path || '';
     }
     
@@ -336,23 +353,7 @@ async function viewProjectSummary(projectId) {
     document.body.style.overflow = 'hidden';
 }
 
-// 요약 모달 생성
-function createSummaryModal() {
-    const modalHtml = `
-        <div id="projectSummaryModal" class="modal">
-            <div class="modal-content summary-modal-content">
-                <div class="modal-header">
-                    <h3 id="modalSummaryTitle">사업 요약</h3>
-                    <span class="close" onclick="closeProjectSummaryModal()">&times;</span>
-                </div>
-                <div class="modal-body" id="modalSummaryBody">
-                    <!-- 파일 내용이 여기에 표시됩니다 -->
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-}
+
 
 // 파일 크기 포맷 (admin.js와 동일)
 function formatFileSize(bytes) {
