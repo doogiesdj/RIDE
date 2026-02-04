@@ -41,8 +41,11 @@ async function loadProjects() {
     try {
         console.log('=== 프로젝트 로드 시작 ===');
         
-        // 항상 JSON 파일에서 최신 데이터 로드 (캐시 무효화)
-        const response = await fetch('data/projects.json?bust=' + new Date().getTime());
+        // 경량 JSON 파일에서 최신 데이터 로드 (캐시 무효화)
+        const response = await fetch('data/projects_light.json?bust=' + new Date().getTime());
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const jsonProjects = await response.json();
         
         console.log(`JSON 파일에서 ${jsonProjects.length}개 프로젝트 로드됨`);
@@ -289,7 +292,10 @@ async function viewProjectSummary(projectId) {
         // projectsData가 비어있거나 프로젝트를 찾지 못한 경우, JSON에서 다시 로드
         if (!project || projectsData.length === 0) {
             console.log('projectsData에서 찾지 못함. JSON 파일에서 로드 시도...');
-            const response = await fetch('data/projects.json?bust=' + new Date().getTime());
+            const response = await fetch('data/projects_light.json?bust=' + new Date().getTime());
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const projects = await response.json();
             projectsData = projects; // 전역 변수 업데이트
             project = projects.find(p => p.id === projectId);
@@ -311,8 +317,22 @@ async function viewProjectSummary(projectId) {
         
         console.log('파일 개수:', project.files.length);
         console.log('첫 번째 파일:', project.files[0]);
+        
+        // 실제 PDF 파일이 필요한 경우, 원본 JSON에서 로드
+        console.log('PDF 데이터 로드 중...');
+        const fullDataResponse = await fetch(`data/projects.json?bust=` + new Date().getTime());
+        if (!fullDataResponse.ok) {
+            throw new Error(`PDF 데이터 로드 실패: ${fullDataResponse.status}`);
+        }
+        const fullProjects = await fullDataResponse.json();
+        const fullProject = fullProjects.find(p => p.id === projectId);
+        
+        if (!fullProject || !fullProject.files || fullProject.files.length === 0) {
+            showNotification('PDF 파일을 불러올 수 없습니다.', 'error');
+            return;
+        }
     
-    const summaryFile = project.files[0];
+        const summaryFile = fullProject.files[0];
     const modal = document.getElementById('projectSummaryModal');
     const modalTitle = document.getElementById('modalSummaryTitle');
     const modalBody = document.getElementById('modalSummaryBody');
