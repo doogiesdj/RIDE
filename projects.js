@@ -39,15 +39,31 @@ function initializeYearFilters() {
 // 프로젝트 로드
 async function loadProjects() {
     try {
-        // 로컬 스토리지에서 먼저 확인
+        // JSON 파일에서 로드 (항상 최신 데이터 사용)
+        const response = await fetch('data/projects.json?t=' + Date.now());
+        const jsonProjects = await response.json();
+        
+        // 로컬 스토리지에서 확인
         const localProjects = localStorage.getItem('projects');
         if (localProjects) {
-            projectsData = JSON.parse(localProjects);
+            const localData = JSON.parse(localProjects);
+            // 로컬 스토리지와 JSON 파일 병합 (로컬 우선)
+            const jsonIds = new Set(jsonProjects.map(p => p.id));
+            const localIds = new Set(localData.map(p => p.id));
+            
+            // 로컬에만 있는 프로젝트 + JSON의 모든 프로젝트 (로컬에 없는 것만)
+            projectsData = [
+                ...localData,
+                ...jsonProjects.filter(p => !localIds.has(p.id))
+            ];
+            
+            console.log(`프로젝트 로드: 로컬 ${localData.length}개, JSON ${jsonProjects.length}개, 최종 ${projectsData.length}개`);
         } else {
-            // JSON 파일에서 로드
-            const response = await fetch('data/projects.json');
-            projectsData = await response.json();
+            // 로컬 스토리지에 없으면 JSON 데이터 사용
+            projectsData = jsonProjects;
+            console.log(`프로젝트 로드: JSON ${jsonProjects.length}개`);
         }
+        
         initializeYearFilters(); // 필터 버튼 생성
         renderProjects(projectsData);
     } catch (error) {
