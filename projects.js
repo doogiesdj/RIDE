@@ -1,5 +1,11 @@
 // 프로젝트 관리 JavaScript
 
+// 알림 함수 (script.js에 없는 경우 대비)
+function showNotification(message, type = 'info') {
+    console.log(`[알림-${type}]`, message);
+    alert(message); // 임시로 alert 사용
+}
+
 // 프로젝트 데이터 저장소
 let projectsData = [];
 
