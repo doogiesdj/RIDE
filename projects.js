@@ -122,15 +122,18 @@ function showProjectDetail(projectId) {
     if (project.files && project.files.length > 0) {
         filesHtml = `
             <div class="project-files">
-                <h4><i class="fas fa-file-download"></i> 결과물 다운로드</h4>
+                <h4><i class="fas fa-file-download"></i> 결과물</h4>
                 <div class="files-list">
-                    ${project.files.map(file => `
+                    ${project.files.map((file, index) => `
                         <div class="file-item">
                             <i class="fas fa-file-pdf"></i>
                             <span>${file.name}</span>
-                            <a href="${file.path}" download class="btn-download">
+                            <button class="btn-view" onclick="event.stopPropagation(); viewFileInModal('${project.id}', ${index})">
+                                <i class="fas fa-eye"></i> 보기
+                            </button>
+                            <button class="btn-download" onclick="event.stopPropagation(); downloadFile('${project.id}', ${index})">
                                 <i class="fas fa-download"></i> 다운로드
-                            </a>
+                            </button>
                         </div>
                     `).join('')}
                 </div>
@@ -353,6 +356,197 @@ async function viewProjectSummary(projectId) {
     document.body.style.overflow = 'hidden';
 }
 
+// 파일 보기 (상세보기 모달에서 사용)
+async function viewFileInModal(projectId, fileIndex) {
+    console.log('viewFileInModal 호출:', projectId, fileIndex);
+    const project = projectsData.find(p => p.id === projectId);
+    
+    if (!project || !project.files || !project.files[fileIndex]) {
+        showNotification('파일을 찾을 수 없습니다.', 'error');
+        return;
+    }
+    
+    const file = project.files[fileIndex];
+    console.log('파일 정보:', file);
+    
+    // 사업 요약 모달로 파일 표시
+    viewProjectSummaryByFile(project, file);
+}
+
+// 파일 다운로드
+async function downloadFile(projectId, fileIndex) {
+    console.log('downloadFile 호출:', projectId, fileIndex);
+    const project = projectsData.find(p => p.id === projectId);
+    
+    if (!project || !project.files || !project.files[fileIndex]) {
+        showNotification('파일을 찾을 수 없습니다.', 'error');
+        return;
+    }
+    
+    const file = project.files[fileIndex];
+    console.log('다운로드 파일:', file.name);
+    
+    try {
+        if (!file.data) {
+            showNotification('파일 데이터가 없습니다.', 'error');
+            return;
+        }
+        
+        // Base64 데이터를 Blob으로 변환
+        const base64Data = file.data.split(',')[1];
+        if (!base64Data) {
+            showNotification('파일 데이터 형식이 잘못되었습니다.', 'error');
+            return;
+        }
+        
+        const mimeType = file.type || 'application/octet-stream';
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: mimeType });
+        
+        // 다운로드 링크 생성 및 클릭
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        // 메모리 정리
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+        
+        showNotification(`${file.name} 다운로드 시작`, 'success');
+    } catch (error) {
+        console.error('다운로드 오류:', error);
+        showNotification('파일 다운로드 중 오류가 발생했습니다: ' + error.message, 'error');
+    }
+}
+
+// 파일별 요약 보기 (내부 함수)
+function viewProjectSummaryByFile(project, file) {
+    const modal = document.getElementById('projectSummaryModal');
+    const modalTitle = document.getElementById('modalSummaryTitle');
+    const modalBody = document.getElementById('modalSummaryBody');
+    
+    if (!modal || !modalTitle || !modalBody) {
+        console.error('모달 요소를 찾을 수 없습니다.');
+        showNotification('페이지 오류가 발생했습니다. 페이지를 새로고침하세요.', 'error');
+        return;
+    }
+    
+    // 모달 제목 설정
+    modalTitle.textContent = `${project.title} - ${file.name}`;
+    
+    // 파일 확장자 확인
+    const fileExt = file.name.toLowerCase().split('.').pop();
+    console.log('파일 확장자:', fileExt);
+    
+    // Base64 데이터를 Blob URL로 변환
+    let blobUrl = '';
+    if (file.data) {
+        try {
+            console.log('Base64 데이터 변환 시작...');
+            const base64Data = file.data.split(',')[1];
+            if (!base64Data) {
+                throw new Error('Base64 데이터가 없습니다');
+            }
+            
+            const mimeType = file.type || 'application/octet-stream';
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: mimeType });
+            blobUrl = URL.createObjectURL(blob);
+            console.log('Blob URL 생성됨:', blobUrl);
+        } catch (error) {
+            console.error('파일 변환 오류:', error);
+            showNotification('파일을 불러올 수 없습니다: ' + error.message, 'error');
+            return;
+        }
+    } else {
+        showNotification('파일 데이터가 없습니다.', 'error');
+        return;
+    }
+    
+    // 파일 내용 표시
+    if (fileExt === 'pdf') {
+        // PDF 뷰어
+        modalBody.innerHTML = `
+            <div class="file-viewer">
+                <div class="file-info">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>${file.name}</span>
+                </div>
+                <div class="pdf-viewer-container">
+                    <iframe src="${blobUrl}#toolbar=1&navpanes=1&scrollbar=1" width="100%" height="600px" style="border: none; border-radius: 8px;"></iframe>
+                </div>
+                <div class="file-actions">
+                    <a href="${blobUrl}" download="${file.name}" class="btn-download-large">
+                        <i class="fas fa-download"></i> 다운로드
+                    </a>
+                    <a href="${blobUrl}" target="_blank" class="btn-open-new">
+                        <i class="fas fa-external-link-alt"></i> 새 창에서 열기
+                    </a>
+                </div>
+            </div>
+        `;
+    } else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(fileExt)) {
+        // Office 파일
+        modalBody.innerHTML = `
+            <div class="file-viewer">
+                <div class="file-info">
+                    <i class="fas fa-file-word"></i>
+                    <span>${file.name}</span>
+                </div>
+                <div class="file-info-large">
+                    <i class="fas fa-file-word" style="font-size: 64px; color: #2b579a;"></i>
+                    <h3>${file.name}</h3>
+                    <p style="color: #666;">파일 크기: ${formatFileSize(file.size)}</p>
+                </div>
+                <p style="color: #666; text-align: center; margin: 20px 0;">
+                    <i class="fas fa-info-circle"></i> Office 문서는 다운로드하여 확인하세요.
+                </p>
+                <div class="file-actions">
+                    <a href="${blobUrl}" download="${file.name}" class="btn-download-large">
+                        <i class="fas fa-download"></i> 다운로드
+                    </a>
+                </div>
+            </div>
+        `;
+    } else {
+        // 기타 파일
+        modalBody.innerHTML = `
+            <div class="file-viewer">
+                <div class="file-info-large">
+                    <i class="fas fa-file" style="font-size: 64px; color: #667eea;"></i>
+                    <h3>${file.name}</h3>
+                    <p style="color: #666;">파일 크기: ${formatFileSize(file.size)}</p>
+                </div>
+                <p style="color: #666; text-align: center; margin: 20px 0;">
+                    이 파일은 브라우저에서 미리보기를 지원하지 않습니다.<br>
+                    다운로드하여 확인하세요.
+                </p>
+                <div class="file-actions">
+                    <a href="${blobUrl}" download="${file.name}" class="btn-download-large">
+                        <i class="fas fa-download"></i> 다운로드
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+    
+    // 모달 표시
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
 
 
 // 파일 크기 포맷 (admin.js와 동일)

@@ -2358,3 +2358,114 @@ main {
         margin-right: 0 !important;
     }
 }
+
+/* 프로젝트 파일 목록 스타일 */
+.project-files {
+    margin-top: 30px;
+}
+
+.project-files h4 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.files-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.files-list .file-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.files-list .file-item:hover {
+    background: #e9ecef;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.files-list .file-item i {
+    font-size: 20px;
+    color: #667eea;
+}
+
+.files-list .file-item span {
+    flex: 1;
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+}
+
+.files-list .btn-view {
+    padding: 6px 14px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.files-list .btn-view:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.files-list .btn-download {
+    padding: 6px 14px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.files-list .btn-download:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.files-list .btn-view i,
+.files-list .btn-download i {
+    font-size: 12px;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .files-list .file-item {
+        flex-wrap: wrap;
+    }
+    
+    .files-list .file-item span {
+        width: 100%;
+    }
+    
+    .files-list .btn-view,
+    .files-list .btn-download {
+        flex: 1;
+        justify-content: center;
+    }
+}
