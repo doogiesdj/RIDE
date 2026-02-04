@@ -172,6 +172,11 @@
                     <h2>주요 사업</h2>
                     <p>디지털경제사회연구원의 사업수행실적을 확인하세요</p>
                 </div>
+                <div class="projects-actions" style="text-align: right; margin-bottom: 20px;">
+                    <a href="admin.html" class="btn btn-primary">
+                        <i class="fas fa-cog"></i> 사업 관리
+                    </a>
+                </div>
                 <div class="projects-content">
                     <div class="projects-filter">
                         <button class="filter-btn active" onclick="filterProjects('all')">전체</button>
@@ -837,7 +842,21 @@
         </div>
     </div>
 
+    <!-- 프로젝트 상세보기 모달 -->
+    <div id="projectDetailModal" class="modal">
+        <div class="modal-content project-modal-content">
+            <div class="modal-header">
+                <h3 id="modalProjectTitle">프로젝트 상세정보</h3>
+                <span class="close" onclick="closeProjectModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="modalProjectBody">
+                <!-- 프로젝트 상세 정보가 여기에 동적으로 삽입됩니다 -->
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
+    <script src="projects.js"></script>
 </body>
 </html>
 

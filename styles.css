@@ -1944,3 +1944,253 @@ main {
     font-size: 0.9rem;
 }
 
+
+/* 프로젝트 상세보기 모달 스타일 */
+.project-modal-content {
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.project-modal-content .modal-body {
+    padding: 30px;
+}
+
+.project-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.project-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.info-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.info-label i {
+    color: #667eea;
+}
+
+.info-value {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+}
+
+.project-description h4,
+.project-results h4,
+.project-files h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.project-description h4 i,
+.project-results h4 i,
+.project-files h4 i {
+    color: #667eea;
+}
+
+.project-description p {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #555;
+}
+
+.project-results ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.project-results li {
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    background: #f8f9fa;
+    border-left: 4px solid #667eea;
+    border-radius: 6px;
+    font-size: 15px;
+    color: #555;
+}
+
+.project-files {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.files-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.file-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.file-item i {
+    font-size: 24px;
+    color: #dc3545;
+}
+
+.file-item span {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    color: #333;
+}
+
+.btn-download {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-download:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.no-files {
+    text-align: center;
+    padding: 30px;
+    color: #999;
+    font-size: 15px;
+}
+
+.no-files i {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+/* 프로젝트 카드 스타일 개선 */
+.project-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.project-action {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.btn-view-detail {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-view-detail:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-view-detail i {
+    font-size: 16px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .project-modal-content {
+        max-width: 95%;
+        margin: 20px auto;
+    }
+
+    .project-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .file-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .btn-download {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* 애니메이션 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.project-card.hidden {
+    display: none;
+}
+
+.projects-actions {
+    text-align: right;
+    margin-bottom: 20px;
+}
