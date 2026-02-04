@@ -114,14 +114,19 @@ function renderProjects(projects) {
         if (hasFiles) {
             const fileBtn = projectCard.querySelector('.btn-view-file');
             if (fileBtn) {
+                console.log(`✓ 파일 보기 버튼 발견: ${project.title}`);
                 fileBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    e.preventDefault();
                     console.log('=== 파일 보기 버튼 클릭 ===');
                     console.log('프로젝트 ID:', project.id);
                     console.log('프로젝트:', project);
                     console.log('파일:', project.files);
                     viewProjectSummary(project.id);
                 });
+                console.log(`✓ 이벤트 리스너 등록 완료: ${project.id}`);
+            } else {
+                console.warn(`✗ 파일 보기 버튼 없음: ${project.title}`);
             }
         }
     });
