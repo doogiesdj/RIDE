@@ -7,8 +7,10 @@ function showNotification(message, type = 'info') {
 }
 
 // 프로젝트 데이터 저장소 (전역으로 노출)
-window.projectsData = [];
-let projectsData = window.projectsData;
+// 전역 변수로만 사용하고 로컬 변수는 사용하지 않음
+if (!window.projectsData) {
+    window.projectsData = [];
+}
 
 // 년도 필터 버튼 초기화
 function initializeYearFilters() {
@@ -23,7 +25,7 @@ function initializeYearFilters() {
     existingButtons.forEach(btn => btn.remove());
     
     // 프로젝트 데이터에서 실제 존재하는 년도 추출
-    const existingYears = [...new Set(projectsData.map(p => p.year))].sort((a, b) => b - a);
+    const existingYears = [...new Set(window.projectsData.map(p => p.year))].sort((a, b) => b - a);
     
     // 현재 년도부터 시작 년도까지 또는 실제 데이터가 있는 년도만 표시
     const yearsToShow = [];
@@ -63,14 +65,14 @@ async function loadProjects() {
             console.log(`[${i+1}] ${p.title} (${p.year}년) - 파일: ${hasFiles ? p.files.length + '개' : '없음'}`);
         });
         
-        // projectsData에 저장
-        projectsData = jsonProjects;
+        // window.projectsData에 저장
+        window.projectsData = jsonProjects;
         
         console.log('=== projectsData 설정 완료 ===');
-        console.log('projectsData 길이:', projectsData.length);
+        console.log('projectsData 길이:', window.projectsData.length);
         
         initializeYearFilters(); // 필터 버튼 생성
-        renderProjects(projectsData);
+        renderProjects(window.projectsData);
     } catch (error) {
         console.error('프로젝트 데이터를 로드하는 중 오류가 발생했습니다:', error);
         
@@ -151,7 +153,7 @@ function renderProjects(projects) {
 
 // 프로젝트 상세보기
 function showProjectDetail(projectId) {
-    const project = projectsData.find(p => p.id === projectId);
+    const project = window.projectsData.find(p => p.id === projectId);
     if (!project) {
         showNotification('프로젝트 정보를 찾을 수 없습니다.', 'error');
         return;
@@ -287,24 +289,24 @@ function closeProjectSummaryModal() {
     }
 }
 
-// 사업 요약 보기
+// 사업 요약 보기 (admin.js와 동일한 방식)
 async function viewProjectSummary(projectId) {
     console.log('=== viewProjectSummary 호출됨 ===');
     console.log('프로젝트 ID:', projectId);
     
     try {
-        // projectsData에서 프로젝트 찾기 (이미 원본 JSON 로드됨)
-        let project = projectsData.find(p => p.id === projectId);
+        // window.projectsData에서 프로젝트 찾기
+        let project = window.projectsData.find(p => p.id === projectId);
         
-        // projectsData가 비어있거나 프로젝트를 찾지 못한 경우, JSON에서 다시 로드
-        if (!project || projectsData.length === 0) {
+        // window.projectsData가 비어있거나 프로젝트를 찾지 못한 경우, JSON에서 다시 로드
+        if (!project || window.projectsData.length === 0) {
             console.log('projectsData에서 찾지 못함. JSON 파일에서 로드 시도...');
             const response = await fetch('data/projects.json?bust=' + new Date().getTime());
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const projects = await response.json();
-            projectsData = projects; // 전역 변수 업데이트
+            window.projectsData = projects;
             project = projects.find(p => p.id === projectId);
         }
         
@@ -312,152 +314,66 @@ async function viewProjectSummary(projectId) {
         
         if (!project) {
             console.error('프로젝트를 찾을 수 없습니다:', projectId);
-            showNotification('프로젝트 정보를 찾을 수 없습니다.', 'error');
+            alert('프로젝트 정보를 찾을 수 없습니다.');
             return;
         }
         
         if (!project.files || project.files.length === 0) {
             console.warn('파일 없음:', project.files);
-            showNotification('업로드된 사업 요약 파일이 없습니다.', 'error');
+            alert('업로드된 파일이 없습니다.');
             return;
         }
         
-        console.log('파일 개수:', project.files.length);
-        console.log('첫 번째 파일:', project.files[0]);
+        const file = project.files[0];
+        console.log('파일 정보:', {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            hasData: !!file.data,
+            dataLength: file.data ? file.data.length : 0
+        });
         
-        const summaryFile = project.files[0];
-    const modal = document.getElementById('projectSummaryModal');
-    const modalTitle = document.getElementById('modalSummaryTitle');
-    const modalBody = document.getElementById('modalSummaryBody');
-    
-    if (!modal || !modalTitle || !modalBody) {
-        console.error('모달 요소를 찾을 수 없습니다.');
-        showNotification('페이지 오류가 발생했습니다. 페이지를 새로고침하세요.', 'error');
-        return;
-    }
-    
-    // 모달 제목 설정
-    modalTitle.textContent = `${project.title} - 사업 요약`;
-    
-    // 파일 확장자 확인
-    const fileExt = summaryFile.name.toLowerCase().split('.').pop();
-    console.log('파일 확장자:', fileExt);
-    
-    // Base64 데이터를 Blob URL로 변환
-    let blobUrl = '';
-    if (summaryFile.data) {
-        try {
-            console.log('Base64 데이터 변환 시작...');
-            const base64Data = summaryFile.data.split(',')[1];
-            if (!base64Data) {
-                throw new Error('Base64 데이터가 없습니다');
-            }
-            console.log('Base64 데이터 길이:', base64Data.length);
-            
-            const mimeType = summaryFile.type || 'application/octet-stream';
-            console.log('MIME 타입:', mimeType);
-            
-            const byteCharacters = atob(base64Data);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const blob = new Blob([byteArray], { type: mimeType });
-            blobUrl = URL.createObjectURL(blob);
-            console.log('Blob URL 생성됨:', blobUrl);
-        } catch (error) {
-            console.error('파일 변환 오류:', error);
-            showNotification('파일을 불러올 수 없습니다: ' + error.message, 'error');
+        if (!file.data) {
+            alert('파일 데이터가 없습니다.');
             return;
         }
-    } else {
-        // 기존 경로 방식 (하위 호환성)
-        console.log('Base64 데이터 없음, 경로 사용:', summaryFile.path);
-        blobUrl = summaryFile.path || '';
-    }
-    
-    // 파일 내용 표시
-    if (fileExt === 'pdf') {
-        // PDF 뷰어
-        modalBody.innerHTML = `
-            <div class="file-viewer">
-                <div class="file-info">
-                    <i class="fas fa-file-pdf"></i>
-                    <span>${summaryFile.name}</span>
-                </div>
-                <div class="pdf-viewer-container">
-                    <iframe src="${blobUrl}" width="100%" height="600px" style="border: none; border-radius: 8px;"></iframe>
-                </div>
-                <div class="file-actions">
-                    <a href="${blobUrl}" download="${summaryFile.name}" class="btn-download-large">
-                        <i class="fas fa-download"></i> 다운로드
-                    </a>
-                    <a href="${blobUrl}" target="_blank" class="btn-open-new">
-                        <i class="fas fa-external-link-alt"></i> 새 창에서 열기
-                    </a>
-                </div>
-            </div>
-        `;
-    } else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(fileExt)) {
-        // Office 파일 - Base64로는 Google Viewer 사용 불가
-        modalBody.innerHTML = `
-            <div class="file-viewer">
-                <div class="file-info">
-                    <i class="fas fa-file-word"></i>
-                    <span>${summaryFile.name}</span>
-                </div>
-                <div class="file-info-large">
-                    <i class="fas fa-file-word" style="font-size: 64px; color: #2b579a;"></i>
-                    <h3>${summaryFile.name}</h3>
-                    <p style="color: #666;">파일 크기: ${formatFileSize(summaryFile.size)}</p>
-                </div>
-                <p style="color: #666; text-align: center; margin: 20px 0;">
-                    <i class="fas fa-info-circle"></i> Office 문서는 다운로드하여 확인하세요.
-                </p>
-                <div class="file-actions">
-                    <a href="${blobUrl}" download="${summaryFile.name}" class="btn-download-large">
-                        <i class="fas fa-download"></i> 다운로드
-                    </a>
-                </div>
-            </div>
-        `;
-    } else {
-        // 기타 파일 - 다운로드만 가능
-        modalBody.innerHTML = `
-            <div class="file-viewer">
-                <div class="file-info-large">
-                    <i class="fas fa-file" style="font-size: 64px; color: #667eea;"></i>
-                    <h3>${summaryFile.name}</h3>
-                    <p style="color: #666;">파일 크기: ${formatFileSize(summaryFile.size)}</p>
-                </div>
-                <p style="color: #666; text-align: center; margin: 20px 0;">
-                    이 파일은 브라우저에서 미리보기를 지원하지 않습니다.<br>
-                    다운로드하여 확인하세요.
-                </p>
-                <div class="file-actions">
-                    <a href="${blobUrl}" download="${summaryFile.name}" class="btn-download-large">
-                        <i class="fas fa-download"></i> 다운로드
-                    </a>
-                </div>
-            </div>
-        `;
-    }
-    
-    // 모달 표시
-    modal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-    
+        
+        // Base64 데이터를 Blob으로 변환 (admin.js와 동일)
+        const base64Data = file.data.split(',')[1];
+        if (!base64Data) {
+            alert('파일 데이터 형식이 잘못되었습니다.');
+            return;
+        }
+        
+        const mimeType = file.type || 'application/octet-stream';
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: mimeType });
+        const blobUrl = URL.createObjectURL(blob);
+        
+        console.log('Blob URL 생성됨:', blobUrl);
+        console.log('✅ 새 창에서 파일 열기...');
+        
+        // 새 창에서 열기 (admin.js와 동일)
+        window.open(blobUrl, '_blank');
+        
+        // 메모리 정리 (5초 후)
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+        
     } catch (error) {
-        console.error('사업 요약 표시 중 오류:', error);
-        showNotification('사업 요약을 표시할 수 없습니다: ' + error.message, 'error');
+        console.error('파일 보기 오류:', error);
+        alert('파일을 열 수 없습니다: ' + error.message);
     }
 }
 
 // 파일 보기 (상세보기 모달에서 사용)
 async function viewFileInModal(projectId, fileIndex) {
     console.log('viewFileInModal 호출:', projectId, fileIndex);
-    const project = projectsData.find(p => p.id === projectId);
+    const project = window.projectsData.find(p => p.id === projectId);
     
     if (!project || !project.files || !project.files[fileIndex]) {
         showNotification('파일을 찾을 수 없습니다.', 'error');
@@ -474,7 +390,7 @@ async function viewFileInModal(projectId, fileIndex) {
 // 파일 다운로드
 async function downloadFile(projectId, fileIndex) {
     console.log('downloadFile 호출:', projectId, fileIndex);
-    const project = projectsData.find(p => p.id === projectId);
+    const project = window.projectsData.find(p => p.id === projectId);
     
     if (!project || !project.files || !project.files[fileIndex]) {
         showNotification('파일을 찾을 수 없습니다.', 'error');
