@@ -100,7 +100,7 @@ function renderProjects(projects) {
                 </div>
                 ${hasFiles ? `
                 <div class="project-action">
-                    <button class="btn-view-file" data-project-id="${project.id}">
+                    <button class="btn-view-file" onclick="viewProjectSummary('${project.id}')">
                         <i class="fas fa-file-pdf"></i> 파일 보기
                     </button>
                 </div>
@@ -110,18 +110,9 @@ function renderProjects(projects) {
         
         projectsGrid.appendChild(projectCard);
         
-        // 파일 보기 버튼 이벤트 리스너 연결
+        // 파일 보기 버튼은 onclick으로 직접 연결
         if (hasFiles) {
-            const viewBtn = projectCard.querySelector('.btn-view-file');
-            if (viewBtn) {
-                viewBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log(`[파일 보기] 클릭됨: ${project.title} (ID: ${project.id})`);
-                    viewProjectSummary(project.id);
-                });
-                console.log(`✓ 파일 보기 버튼 연결: ${project.title} (ID: ${project.id})`);
-            }
+            console.log(`✓ 파일 보기 버튼 생성: ${project.title} (ID: ${project.id})`);
         }
     });
 }
@@ -266,22 +257,38 @@ function closeProjectSummaryModal() {
 
 // 사업 요약 보기
 async function viewProjectSummary(projectId) {
-    console.log('viewProjectSummary 호출됨:', projectId);
-    const project = projectsData.find(p => p.id === projectId);
-    console.log('프로젝트 정보:', project);
+    console.log('=== viewProjectSummary 호출됨 ===');
+    console.log('프로젝트 ID:', projectId);
     
-    if (!project) {
-        showNotification('프로젝트 정보를 찾을 수 없습니다.', 'error');
-        return;
-    }
-    
-    if (!project.files || project.files.length === 0) {
-        console.warn('파일 없음:', project.files);
-        showNotification('업로드된 사업 요약 파일이 없습니다.', 'error');
-        return;
-    }
-    
-    console.log('파일 정보:', project.files[0]);
+    try {
+        // projectsData에서 프로젝트 찾기
+        let project = projectsData.find(p => p.id === projectId);
+        
+        // projectsData가 비어있거나 프로젝트를 찾지 못한 경우, JSON에서 다시 로드
+        if (!project || projectsData.length === 0) {
+            console.log('projectsData에서 찾지 못함. JSON 파일에서 로드 시도...');
+            const response = await fetch('data/projects.json?bust=' + new Date().getTime());
+            const projects = await response.json();
+            projectsData = projects; // 전역 변수 업데이트
+            project = projects.find(p => p.id === projectId);
+        }
+        
+        console.log('프로젝트 정보:', project);
+        
+        if (!project) {
+            console.error('프로젝트를 찾을 수 없습니다:', projectId);
+            showNotification('프로젝트 정보를 찾을 수 없습니다.', 'error');
+            return;
+        }
+        
+        if (!project.files || project.files.length === 0) {
+            console.warn('파일 없음:', project.files);
+            showNotification('업로드된 사업 요약 파일이 없습니다.', 'error');
+            return;
+        }
+        
+        console.log('파일 개수:', project.files.length);
+        console.log('첫 번째 파일:', project.files[0]);
     
     const summaryFile = project.files[0];
     const modal = document.getElementById('projectSummaryModal');
