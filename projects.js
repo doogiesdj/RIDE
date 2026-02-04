@@ -63,19 +63,41 @@ async function loadProjects() {
         renderProjects(projectsData);
     } catch (error) {
         console.error('프로젝트 데이터를 로드하는 중 오류가 발생했습니다:', error);
-        showNotification('프로젝트 데이터를 로드할 수 없습니다.', 'error');
+        
+        const projectsGrid = document.getElementById('projectsGrid');
+        if (projectsGrid) {
+            projectsGrid.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #e74c3c; width: 100%;">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    프로젝트 데이터를 불러올 수 없습니다.<br>
+                    <small>오류: ${error.message}</small>
+                </div>
+            `;
+        }
+        
+        if (typeof showNotification === 'function') {
+            showNotification('프로젝트 데이터를 로드할 수 없습니다.', 'error');
+        }
     }
 }
 
 // 프로젝트 렌더링
 function renderProjects(projects) {
     const projectsGrid = document.getElementById('projectsGrid');
-    if (!projectsGrid) return;
+    if (!projectsGrid) {
+        console.error('projectsGrid 요소를 찾을 수 없습니다.');
+        return;
+    }
     
-    // 기존 프로젝트 카드 삭제
+    // 기존 프로젝트 카드 삭제 (로딩 메시지 포함)
     projectsGrid.innerHTML = '';
     
     console.log('프로젝트 렌더링:', projects.length, '개');
+    
+    if (!projects || projects.length === 0) {
+        projectsGrid.innerHTML = '<div style="text-align: center; padding: 40px; color: #666; width: 100%;">등록된 프로젝트가 없습니다.</div>';
+        return;
+    }
     
     // 프로젝트 카드 생성
     projects.forEach(project => {
