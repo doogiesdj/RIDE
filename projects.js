@@ -131,7 +131,7 @@ function renderProjects(projects) {
                 </div>
                 ${hasFiles ? `
                 <div class="project-action">
-                    <button class="btn-view-file" onclick="viewProjectSummary('${project.id}')">
+                    <button class="btn-view-file" data-project-id="${project.id}">
                         <i class="fas fa-file-pdf"></i> 파일 보기
                     </button>
                 </div>
@@ -146,6 +146,26 @@ function renderProjects(projects) {
             console.log(`✓ 파일 보기 버튼 생성: ${project.title} (ID: ${project.id})`);
         }
     });
+    
+    // 모든 파일 보기 버튼에 이벤트 리스너 추가
+    setTimeout(() => {
+        const viewFileButtons = document.querySelectorAll('.btn-view-file');
+        console.log(`파일 보기 버튼 이벤트 리스너 추가 중... 총 ${viewFileButtons.length}개`);
+        
+        viewFileButtons.forEach((button, index) => {
+            const projectId = button.getAttribute('data-project-id');
+            console.log(`[${index + 1}] 버튼에 이벤트 추가: ${projectId}`);
+            
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🔵 파일 보기 버튼 클릭됨:', projectId);
+                viewProjectSummary(projectId);
+            });
+        });
+        
+        console.log('✅ 모든 파일 보기 버튼 이벤트 리스너 추가 완료');
+    }, 100);
 }
 
 // 프로젝트 상세보기
