@@ -110,23 +110,17 @@ function renderProjects(projects) {
         
         projectsGrid.appendChild(projectCard);
         
-        // 파일 보기 버튼 이벤트 리스너 (파일이 있는 경우)
+        // 파일 보기 버튼 이벤트 리스너 연결
         if (hasFiles) {
-            const fileBtn = projectCard.querySelector('.btn-view-file');
-            if (fileBtn) {
-                console.log(`✓ 파일 보기 버튼 발견: ${project.title}`);
-                fileBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
+            const viewBtn = projectCard.querySelector('.btn-view-file');
+            if (viewBtn) {
+                viewBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    console.log('=== 파일 보기 버튼 클릭 ===');
-                    console.log('프로젝트 ID:', project.id);
-                    console.log('프로젝트:', project);
-                    console.log('파일:', project.files);
+                    e.stopPropagation();
+                    console.log(`[파일 보기] 클릭됨: ${project.title} (ID: ${project.id})`);
                     viewProjectSummary(project.id);
                 });
-                console.log(`✓ 이벤트 리스너 등록 완료: ${project.id}`);
-            } else {
-                console.warn(`✗ 파일 보기 버튼 없음: ${project.title}`);
+                console.log(`✓ 파일 보기 버튼 연결: ${project.title} (ID: ${project.id})`);
             }
         }
     });

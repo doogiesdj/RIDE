@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>버튼 테스트</title>
+    <style>
+        body { padding: 20px; font-family: Arial; }
+        .test-card { 
+            border: 1px solid #ddd; 
+            padding: 20px; 
+            margin: 10px;
+            max-width: 400px;
+        }
+        .btn-view-file {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-view-file:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>파일 보기 버튼 테스트</h1>
+    
+    <div class="test-card">
+        <h3>테스트 프로젝트</h3>
+        <p>이 버튼이 작동해야 합니다:</p>
+        <button class="btn-view-file" onclick="testClick()">파일 보기 (onclick)</button>
+    </div>
+    
+    <div class="test-card">
+        <h3>addEventListener 테스트</h3>
+        <p>이 버튼도 작동해야 합니다:</p>
+        <button class="btn-view-file" id="testBtn">파일 보기 (addEventListener)</button>
+    </div>
+    
+    <div id="log" style="margin-top: 20px; padding: 10px; background: #f5f5f5;"></div>
+    
+    <script>
+        function log(msg) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += '<div>' + new Date().toLocaleTimeString() + ' - ' + msg + '</div>';
+            console.log(msg);
+        }
+        
+        function testClick() {
+            log('✅ onclick 버튼 클릭됨!');
+            alert('onclick 버튼이 작동합니다!');
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            log('DOM 로드 완료');
+            
+            const btn = document.getElementById('testBtn');
+            if (btn) {
+                log('버튼 발견: ' + btn.textContent);
+                btn.addEventListener('click', function(e) {
+                    log('✅ addEventListener 버튼 클릭됨!');
+                    alert('addEventListener 버튼이 작동합니다!');
+                });
+                log('이벤트 리스너 등록 완료');
+            } else {
+                log('❌ 버튼을 찾을 수 없음!');
+            }
+        });
+        
+        log('스크립트 로드됨');
+    </script>
+</body>
+</html>
