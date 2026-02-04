@@ -446,6 +446,11 @@ async function viewProjectSummary(projectId) {
     // 모달 표시
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
+    
+    } catch (error) {
+        console.error('사업 요약 표시 중 오류:', error);
+        showNotification('사업 요약을 표시할 수 없습니다: ' + error.message, 'error');
+    }
 }
 
 // 파일 보기 (상세보기 모달에서 사용)
