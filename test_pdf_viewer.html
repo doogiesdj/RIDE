@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF 뷰어 테스트</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; cursor: pointer; }
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; }
+        #modal-content { background: white; margin: 50px auto; padding: 20px; width: 80%; max-width: 900px; border-radius: 10px; }
+        iframe { width: 100%; height: 600px; border: none; }
+    </style>
+</head>
+<body>
+    <h1>PDF 뷰어 테스트</h1>
+    <button onclick="testPDF()">테스트 PDF 열기</button>
+    <button onclick="loadFromJSON()">JSON에서 PDF 로드</button>
+    
+    <div id="modal">
+        <div id="modal-content">
+            <button onclick="closeModal()">닫기</button>
+            <div id="pdf-container"></div>
+        </div>
+    </div>
+
+    <script>
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+        
+        function testPDF() {
+            fetch('data/projects.json')
+                .then(r => r.json())
+                .then(projects => {
+                    console.log('프로젝트 수:', projects.length);
+                    const project = projects[0];
+                    console.log('첫 번째 프로젝트:', project.title);
+                    console.log('파일 수:', project.files ? project.files.length : 0);
+                    
+                    if (project.files && project.files.length > 0) {
+                        const file = project.files[0];
+                        console.log('파일명:', file.name);
+                        console.log('파일 크기:', file.size);
+                        console.log('데이터 있음:', !!file.data);
+                        console.log('데이터 길이:', file.data ? file.data.length : 0);
+                        
+                        // Base64 → Blob 변환
+                        const base64Data = file.data.split(',')[1];
+                        const byteCharacters = atob(base64Data);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], { type: file.type });
+                        const blobUrl = URL.createObjectURL(blob);
+                        
+                        console.log('Blob URL:', blobUrl);
+                        
+                        document.getElementById('pdf-container').innerHTML = 
+                            `<h2>${file.name}</h2><iframe src="${blobUrl}"></iframe>`;
+                        document.getElementById('modal').style.display = 'block';
+                    } else {
+                        alert('파일이 없습니다');
+                    }
+                })
+                .catch(err => console.error('오류:', err));
+        }
+        
+        function loadFromJSON() {
+            testPDF();
+        }
+    </script>
+</body>
+</html>

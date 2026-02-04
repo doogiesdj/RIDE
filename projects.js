@@ -103,16 +103,13 @@ function renderProjects(projects) {
                 <div class="project-client">
                     <strong>발주처:</strong> ${project.client}
                 </div>
+                ${hasFiles ? `
                 <div class="project-action">
-                    ${hasFiles ? `
                     <button class="btn-view-file" data-project-id="${project.id}">
                         <i class="fas fa-file-pdf"></i> 파일 보기
                     </button>
-                    ` : ''}
-                    <button class="btn-view-detail" data-project-id="${project.id}">
-                        <i class="fas fa-info-circle"></i> 상세보기
-                    </button>
                 </div>
+                ` : ''}
             </div>
         `;
         
@@ -124,27 +121,14 @@ function renderProjects(projects) {
             if (fileBtn) {
                 fileBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    console.log('파일 보기 버튼 클릭:', project.id);
+                    console.log('=== 파일 보기 버튼 클릭 ===');
+                    console.log('프로젝트 ID:', project.id);
+                    console.log('프로젝트:', project);
+                    console.log('파일:', project.files);
                     viewProjectSummary(project.id);
                 });
             }
         }
-        
-        // 상세보기 버튼 이벤트 리스너
-        const detailBtn = projectCard.querySelector('.btn-view-detail');
-        if (detailBtn) {
-            detailBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                console.log('상세보기 버튼 클릭:', project.id);
-                showProjectDetail(project.id);
-            });
-        }
-        
-        // 카드 전체 클릭 이벤트 (상세보기)
-        projectCard.addEventListener('click', () => {
-            console.log('카드 클릭:', project.id);
-            showProjectDetail(project.id);
-        });
     });
 }
 
