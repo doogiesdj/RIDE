@@ -5,10 +5,31 @@ let editingProjectId = null;
 
 // 페이지 로드 시 실행
 document.addEventListener('DOMContentLoaded', function() {
+    initializeYearOptions(); // 년도 옵션 초기화 추가
     loadProjectsList();
     initializeFileUpload();
     initializeForm();
 });
+
+// 년도 옵션 동적 생성
+function initializeYearOptions() {
+    const yearSelect = document.getElementById('year');
+    const currentYear = new Date().getFullYear();
+    const startYear = 2020; // 시작 년도
+    
+    // 기존 옵션 삭제 (선택하세요 제외)
+    while (yearSelect.options.length > 1) {
+        yearSelect.remove(1);
+    }
+    
+    // 현재 년도부터 시작 년도까지 역순으로 추가
+    for (let year = currentYear; year >= startYear; year--) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = `${year}년`;
+        yearSelect.appendChild(option);
+    }
+}
 
 // 폼 초기화
 function initializeForm() {

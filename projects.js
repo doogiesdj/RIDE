@@ -3,6 +3,39 @@
 // 프로젝트 데이터 저장소
 let projectsData = [];
 
+// 년도 필터 버튼 초기화
+function initializeYearFilters() {
+    const currentYear = new Date().getFullYear();
+    const startYear = 2020;
+    const filterContainer = document.getElementById('projectsFilter');
+    
+    if (!filterContainer) return;
+    
+    // 기존 년도 버튼들 제거 (전체 버튼은 유지)
+    const existingButtons = filterContainer.querySelectorAll('.filter-btn:not(:first-child)');
+    existingButtons.forEach(btn => btn.remove());
+    
+    // 프로젝트 데이터에서 실제 존재하는 년도 추출
+    const existingYears = [...new Set(projectsData.map(p => p.year))].sort((a, b) => b - a);
+    
+    // 현재 년도부터 시작 년도까지 또는 실제 데이터가 있는 년도만 표시
+    const yearsToShow = [];
+    for (let year = currentYear; year >= startYear; year--) {
+        if (existingYears.includes(year.toString()) || year >= currentYear - 1) {
+            yearsToShow.push(year);
+        }
+    }
+    
+    // 년도 버튼 추가
+    yearsToShow.forEach(year => {
+        const button = document.createElement('button');
+        button.className = 'filter-btn';
+        button.textContent = `${year}년`;
+        button.onclick = function() { filterProjects(year.toString()); };
+        filterContainer.appendChild(button);
+    });
+}
+
 // 프로젝트 로드
 async function loadProjects() {
     try {
@@ -15,6 +48,7 @@ async function loadProjects() {
             const response = await fetch('data/projects.json');
             projectsData = await response.json();
         }
+        initializeYearFilters(); // 필터 버튼 생성
         renderProjects(projectsData);
     } catch (error) {
         console.error('프로젝트 데이터를 로드하는 중 오류가 발생했습니다:', error);
