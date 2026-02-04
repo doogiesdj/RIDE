@@ -80,16 +80,18 @@ function renderProjects(projects) {
     // 기존 프로젝트 카드 삭제
     projectsGrid.innerHTML = '';
     
+    console.log('프로젝트 렌더링:', projects.length, '개');
+    
     // 프로젝트 카드 생성
     projects.forEach(project => {
         const projectCard = document.createElement('div');
         projectCard.className = 'project-card';
         projectCard.setAttribute('data-year', project.year);
         projectCard.setAttribute('data-project-id', project.id);
-        projectCard.onclick = () => showProjectDetail(project.id);
         
         // 사업 요약 파일 찾기
-        const summaryFile = project.files && project.files.length > 0 ? project.files[0] : null;
+        const hasFiles = project.files && project.files.length > 0;
+        console.log(`프로젝트 "${project.title}" - 파일:`, hasFiles ? project.files.length + '개' : '없음');
         
         projectCard.innerHTML = `
             <div class="project-header">
@@ -102,19 +104,47 @@ function renderProjects(projects) {
                     <strong>발주처:</strong> ${project.client}
                 </div>
                 <div class="project-action">
-                    ${summaryFile ? `
-                    <button class="btn-view-summary" onclick="event.stopPropagation(); viewProjectSummary('${project.id}')">
-                        <i class="fas fa-file-alt"></i> 사업 요약
+                    ${hasFiles ? `
+                    <button class="btn-view-file" data-project-id="${project.id}">
+                        <i class="fas fa-file-pdf"></i> 파일 보기
                     </button>
                     ` : ''}
-                    <button class="btn-view-detail">
-                        <i class="fas fa-eye"></i> 상세보기
+                    <button class="btn-view-detail" data-project-id="${project.id}">
+                        <i class="fas fa-info-circle"></i> 상세보기
                     </button>
                 </div>
             </div>
         `;
         
         projectsGrid.appendChild(projectCard);
+        
+        // 파일 보기 버튼 이벤트 리스너 (파일이 있는 경우)
+        if (hasFiles) {
+            const fileBtn = projectCard.querySelector('.btn-view-file');
+            if (fileBtn) {
+                fileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    console.log('파일 보기 버튼 클릭:', project.id);
+                    viewProjectSummary(project.id);
+                });
+            }
+        }
+        
+        // 상세보기 버튼 이벤트 리스너
+        const detailBtn = projectCard.querySelector('.btn-view-detail');
+        if (detailBtn) {
+            detailBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log('상세보기 버튼 클릭:', project.id);
+                showProjectDetail(project.id);
+            });
+        }
+        
+        // 카드 전체 클릭 이벤트 (상세보기)
+        projectCard.addEventListener('click', () => {
+            console.log('카드 클릭:', project.id);
+            showProjectDetail(project.id);
+        });
     });
 }
 
@@ -138,16 +168,16 @@ function showProjectDetail(projectId) {
     if (project.files && project.files.length > 0) {
         filesHtml = `
             <div class="project-files">
-                <h4><i class="fas fa-file-download"></i> 결과물</h4>
+                <h4><i class="fas fa-file-download"></i> 첨부파일</h4>
                 <div class="files-list">
                     ${project.files.map((file, index) => `
                         <div class="file-item">
                             <i class="fas fa-file-pdf"></i>
                             <span>${file.name}</span>
-                            <button class="btn-view" onclick="event.stopPropagation(); viewFileInModal('${project.id}', ${index})">
-                                <i class="fas fa-eye"></i> 보기
+                            <button class="btn-view" data-project-id="${project.id}" data-file-index="${index}">
+                                <i class="fas fa-file-alt"></i> 파일 보기
                             </button>
-                            <button class="btn-download" onclick="event.stopPropagation(); downloadFile('${project.id}', ${index})">
+                            <button class="btn-download" data-project-id="${project.id}" data-file-index="${index}">
                                 <i class="fas fa-download"></i> 다운로드
                             </button>
                         </div>
@@ -209,6 +239,33 @@ function showProjectDetail(projectId) {
     // 모달 표시
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
+    
+    // 파일 버튼 이벤트 리스너 추가
+    setTimeout(() => {
+        // 파일 보기 버튼들
+        const viewButtons = modal.querySelectorAll('.btn-view');
+        viewButtons.forEach(btn => {
+            const projectId = btn.getAttribute('data-project-id');
+            const fileIndex = parseInt(btn.getAttribute('data-file-index'));
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log('파일 보기 클릭:', projectId, fileIndex);
+                viewFileInModal(projectId, fileIndex);
+            });
+        });
+        
+        // 다운로드 버튼들
+        const downloadButtons = modal.querySelectorAll('.btn-download');
+        downloadButtons.forEach(btn => {
+            const projectId = btn.getAttribute('data-project-id');
+            const fileIndex = parseInt(btn.getAttribute('data-file-index'));
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log('다운로드 클릭:', projectId, fileIndex);
+                downloadFile(projectId, fileIndex);
+            });
+        });
+    }, 100);
 }
 
 // 프로젝트 모달 닫기

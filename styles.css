@@ -2196,6 +2196,61 @@ main {
 }
 
 /* 사업 요약 버튼 스타일 */
+/* 파일 보기 버튼 (메인 페이지 카드) */
+.btn-view-file {
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-view-file:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-view-file i {
+    font-size: 16px;
+}
+
+/* 상세보기 버튼 */
+.btn-view-detail {
+    padding: 10px 16px;
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-view-detail:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-view-detail i {
+    font-size: 16px;
+}
+
+/* 구버전 호환성 (사업 요약 버튼) */
 .btn-view-summary {
     padding: 10px 16px;
     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
