@@ -2194,3 +2194,167 @@ main {
     text-align: right;
     margin-bottom: 20px;
 }
+
+/* 사업 요약 버튼 스타일 */
+.btn-view-summary {
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-right: 10px;
+}
+
+.btn-view-summary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.btn-view-summary i {
+    font-size: 16px;
+}
+
+/* 사업 요약 모달 스타일 */
+.summary-modal-content {
+    max-width: 1000px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.file-viewer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 8px;
+}
+
+.file-info i {
+    font-size: 32px;
+    color: #dc3545;
+}
+
+.file-info span {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.file-info-large {
+    text-align: center;
+    padding: 40px;
+}
+
+.file-info-large h3 {
+    margin: 20px 0 10px;
+    color: #333;
+}
+
+.pdf-viewer-container {
+    width: 100%;
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.file-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-download-large,
+.btn-open-new {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-download-large {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-download-large:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-open-new {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+}
+
+.btn-open-new:hover {
+    background: #667eea;
+    color: white;
+}
+
+/* 프로젝트 액션 버튼들 정렬 */
+.project-action {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.project-action button {
+    flex: 1;
+    min-width: 120px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .summary-modal-content {
+        max-width: 95%;
+        margin: 20px auto;
+    }
+
+    .pdf-viewer-container iframe {
+        height: 400px !important;
+    }
+
+    .file-actions {
+        flex-direction: column;
+    }
+
+    .btn-download-large,
+    .btn-open-new {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .project-action {
+        flex-direction: column;
+    }
+
+    .project-action button {
+        width: 100%;
+        margin-right: 0 !important;
+    }
+}

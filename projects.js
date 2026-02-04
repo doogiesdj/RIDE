@@ -72,6 +72,9 @@ function renderProjects(projects) {
         projectCard.setAttribute('data-project-id', project.id);
         projectCard.onclick = () => showProjectDetail(project.id);
         
+        // 사업 요약 파일 찾기
+        const summaryFile = project.files && project.files.length > 0 ? project.files[0] : null;
+        
         projectCard.innerHTML = `
             <div class="project-header">
                 <span class="project-year">${project.year}</span>
@@ -83,6 +86,11 @@ function renderProjects(projects) {
                     <strong>발주처:</strong> ${project.client}
                 </div>
                 <div class="project-action">
+                    ${summaryFile ? `
+                    <button class="btn-view-summary" onclick="event.stopPropagation(); viewProjectSummary('${project.id}')">
+                        <i class="fas fa-file-alt"></i> 사업 요약
+                    </button>
+                    ` : ''}
                     <button class="btn-view-detail">
                         <i class="fas fa-eye"></i> 상세보기
                     </button>
@@ -193,6 +201,143 @@ function closeProjectModal() {
     }
 }
 
+// 프로젝트 요약 모달 닫기
+function closeProjectSummaryModal() {
+    const modal = document.getElementById('projectSummaryModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// 사업 요약 보기
+function viewProjectSummary(projectId) {
+    const project = projectsData.find(p => p.id === projectId);
+    if (!project) {
+        showNotification('프로젝트 정보를 찾을 수 없습니다.', 'error');
+        return;
+    }
+    
+    if (!project.files || project.files.length === 0) {
+        showNotification('업로드된 사업 요약 파일이 없습니다.', 'error');
+        return;
+    }
+    
+    const summaryFile = project.files[0];
+    const modal = document.getElementById('projectSummaryModal');
+    const modalTitle = document.getElementById('modalSummaryTitle');
+    const modalBody = document.getElementById('modalSummaryBody');
+    
+    if (!modal) {
+        // 모달이 없으면 생성
+        createSummaryModal();
+        return viewProjectSummary(projectId); // 재귀 호출
+    }
+    
+    // 모달 제목 설정
+    modalTitle.textContent = `${project.title} - 사업 요약`;
+    
+    // 파일 확장자 확인
+    const fileExt = summaryFile.name.toLowerCase().split('.').pop();
+    
+    // 파일 내용 표시
+    if (fileExt === 'pdf') {
+        // PDF 뷰어
+        modalBody.innerHTML = `
+            <div class="file-viewer">
+                <div class="file-info">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>${summaryFile.name}</span>
+                </div>
+                <div class="pdf-viewer-container">
+                    <iframe src="${summaryFile.path}" width="100%" height="600px" style="border: none; border-radius: 8px;"></iframe>
+                </div>
+                <div class="file-actions">
+                    <a href="${summaryFile.path}" download class="btn-download-large">
+                        <i class="fas fa-download"></i> 다운로드
+                    </a>
+                    <a href="${summaryFile.path}" target="_blank" class="btn-open-new">
+                        <i class="fas fa-external-link-alt"></i> 새 창에서 열기
+                    </a>
+                </div>
+            </div>
+        `;
+    } else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(fileExt)) {
+        // Office 파일 - Google Docs Viewer 사용
+        const googleViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(summaryFile.path)}&embedded=true`;
+        modalBody.innerHTML = `
+            <div class="file-viewer">
+                <div class="file-info">
+                    <i class="fas fa-file-word"></i>
+                    <span>${summaryFile.name}</span>
+                </div>
+                <div class="pdf-viewer-container">
+                    <iframe src="${googleViewerUrl}" width="100%" height="600px" style="border: none; border-radius: 8px;"></iframe>
+                </div>
+                <div class="file-actions">
+                    <a href="${summaryFile.path}" download class="btn-download-large">
+                        <i class="fas fa-download"></i> 다운로드
+                    </a>
+                    <p style="color: #666; font-size: 14px; margin-top: 10px;">
+                        <i class="fas fa-info-circle"></i> 문서를 볼 수 없는 경우 다운로드하여 확인하세요.
+                    </p>
+                </div>
+            </div>
+        `;
+    } else {
+        // 기타 파일 - 다운로드만 가능
+        modalBody.innerHTML = `
+            <div class="file-viewer">
+                <div class="file-info-large">
+                    <i class="fas fa-file" style="font-size: 64px; color: #667eea;"></i>
+                    <h3>${summaryFile.name}</h3>
+                    <p style="color: #666;">파일 크기: ${formatFileSize(summaryFile.size)}</p>
+                </div>
+                <p style="color: #666; text-align: center; margin: 20px 0;">
+                    이 파일은 브라우저에서 미리보기를 지원하지 않습니다.<br>
+                    다운로드하여 확인하세요.
+                </p>
+                <div class="file-actions">
+                    <a href="${summaryFile.path}" download class="btn-download-large">
+                        <i class="fas fa-download"></i> 다운로드
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+    
+    // 모달 표시
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+// 요약 모달 생성
+function createSummaryModal() {
+    const modalHtml = `
+        <div id="projectSummaryModal" class="modal">
+            <div class="modal-content summary-modal-content">
+                <div class="modal-header">
+                    <h3 id="modalSummaryTitle">사업 요약</h3>
+                    <span class="close" onclick="closeProjectSummaryModal()">&times;</span>
+                </div>
+                <div class="modal-body" id="modalSummaryBody">
+                    <!-- 파일 내용이 여기에 표시됩니다 -->
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+// 파일 크기 포맷 (admin.js와 동일)
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
 // 프로젝트 필터링 (기존 함수 업데이트)
 function filterProjects(year) {
     const projectCards = document.querySelectorAll('.project-card');
@@ -234,18 +379,30 @@ function filterProjects(year) {
 
 // 모달 외부 클릭 시 닫기
 window.addEventListener('click', function(event) {
-    const modal = document.getElementById('projectDetailModal');
-    if (event.target === modal) {
+    const detailModal = document.getElementById('projectDetailModal');
+    const summaryModal = document.getElementById('projectSummaryModal');
+    
+    if (event.target === detailModal) {
         closeProjectModal();
+    }
+    
+    if (event.target === summaryModal) {
+        closeProjectSummaryModal();
     }
 });
 
 // ESC 키로 모달 닫기
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
-        const modal = document.getElementById('projectDetailModal');
-        if (modal && modal.style.display === 'block') {
+        const detailModal = document.getElementById('projectDetailModal');
+        const summaryModal = document.getElementById('projectSummaryModal');
+        
+        if (detailModal && detailModal.style.display === 'block') {
             closeProjectModal();
+        }
+        
+        if (summaryModal && summaryModal.style.display === 'block') {
+            closeProjectSummaryModal();
         }
     }
 });
