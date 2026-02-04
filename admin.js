@@ -240,13 +240,22 @@ async function handleFormSubmit(event) {
         projectId = `proj_${year}_${timestamp}`;
     }
     
-    // 파일 처리 (실제로는 서버에 업로드해야 함)
-    // 여기서는 파일 정보만 저장
-    const files = uploadedFiles.map(file => ({
-        name: file.name,
-        path: `src/projects/${projectId}/${file.name}`,
-        size: file.size
-    }));
+    // 파일 처리 - Base64로 인코딩하여 저장
+    const files = [];
+    for (const file of uploadedFiles) {
+        try {
+            const base64 = await fileToBase64(file);
+            files.push({
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                data: base64 // Base64 인코딩된 데이터
+            });
+        } catch (error) {
+            console.error('파일 인코딩 오류:', file.name, error);
+            showAlert(`파일 처리 중 오류: ${file.name}`, 'error');
+        }
+    }
     
     const projectData = {
         id: projectId,
@@ -269,6 +278,16 @@ async function handleFormSubmit(event) {
     } catch (error) {
         showAlert('프로젝트 저장 중 오류가 발생했습니다: ' + error.message, 'error');
     }
+}
+
+// 파일을 Base64로 인코딩
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
 }
 
 // 프로젝트 저장
@@ -348,6 +367,11 @@ function renderProjectsList(projects) {
                     <span>${project.year}년 · ${project.client}</span>
                 </div>
                 <div class="project-item-actions">
+                    ${project.files && project.files.length > 0 ? `
+                    <button class="btn-view-file" onclick="viewProjectFile('${project.id}')">
+                        <i class="fas fa-file-alt"></i> 파일 보기
+                    </button>
+                    ` : ''}
                     <button class="btn-edit" onclick="editProject('${project.id}')">
                         <i class="fas fa-edit"></i> 수정
                     </button>
@@ -494,4 +518,48 @@ function showAlert(message, type = 'info') {
         alert.style.animation = 'slideIn 0.3s ease reverse';
         setTimeout(() => alert.remove(), 300);
     }, 5000);
+}
+
+// 프로젝트 파일 보기 (관리자 페이지)
+async function viewProjectFile(projectId) {
+    try {
+        let projects = [];
+        const localProjects = localStorage.getItem('projects');
+        if (localProjects) {
+            projects = JSON.parse(localProjects);
+        } else {
+            const response = await fetch('data/projects.json');
+            projects = await response.json();
+        }
+        
+        const project = projects.find(p => p.id === projectId);
+        if (!project || !project.files || project.files.length === 0) {
+            showAlert('업로드된 파일이 없습니다.', 'error');
+            return;
+        }
+        
+        const file = project.files[0];
+        
+        // Base64 데이터를 Blob으로 변환
+        const base64Data = file.data.split(',')[1];
+        const mimeType = file.type || 'application/octet-stream';
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: mimeType });
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // 새 창에서 열기
+        window.open(blobUrl, '_blank');
+        
+        // 메모리 정리 (5초 후)
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+        
+    } catch (error) {
+        console.error('파일 보기 오류:', error);
+        showAlert('파일을 열 수 없습니다.', 'error');
+    }
 }

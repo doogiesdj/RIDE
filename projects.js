@@ -211,7 +211,7 @@ function closeProjectSummaryModal() {
 }
 
 // 사업 요약 보기
-function viewProjectSummary(projectId) {
+async function viewProjectSummary(projectId) {
     const project = projectsData.find(p => p.id === projectId);
     if (!project) {
         showNotification('프로젝트 정보를 찾을 수 없습니다.', 'error');
@@ -240,6 +240,30 @@ function viewProjectSummary(projectId) {
     // 파일 확장자 확인
     const fileExt = summaryFile.name.toLowerCase().split('.').pop();
     
+    // Base64 데이터를 Blob URL로 변환
+    let blobUrl = '';
+    if (summaryFile.data) {
+        try {
+            const base64Data = summaryFile.data.split(',')[1];
+            const mimeType = summaryFile.type || 'application/octet-stream';
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: mimeType });
+            blobUrl = URL.createObjectURL(blob);
+        } catch (error) {
+            console.error('파일 변환 오류:', error);
+            showNotification('파일을 불러올 수 없습니다.', 'error');
+            return;
+        }
+    } else {
+        // 기존 경로 방식 (하위 호환성)
+        blobUrl = summaryFile.path || '';
+    }
+    
     // 파일 내용 표시
     if (fileExt === 'pdf') {
         // PDF 뷰어
@@ -250,37 +274,38 @@ function viewProjectSummary(projectId) {
                     <span>${summaryFile.name}</span>
                 </div>
                 <div class="pdf-viewer-container">
-                    <iframe src="${summaryFile.path}" width="100%" height="600px" style="border: none; border-radius: 8px;"></iframe>
+                    <iframe src="${blobUrl}" width="100%" height="600px" style="border: none; border-radius: 8px;"></iframe>
                 </div>
                 <div class="file-actions">
-                    <a href="${summaryFile.path}" download class="btn-download-large">
+                    <a href="${blobUrl}" download="${summaryFile.name}" class="btn-download-large">
                         <i class="fas fa-download"></i> 다운로드
                     </a>
-                    <a href="${summaryFile.path}" target="_blank" class="btn-open-new">
+                    <a href="${blobUrl}" target="_blank" class="btn-open-new">
                         <i class="fas fa-external-link-alt"></i> 새 창에서 열기
                     </a>
                 </div>
             </div>
         `;
     } else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(fileExt)) {
-        // Office 파일 - Google Docs Viewer 사용
-        const googleViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(summaryFile.path)}&embedded=true`;
+        // Office 파일 - Base64로는 Google Viewer 사용 불가
         modalBody.innerHTML = `
             <div class="file-viewer">
                 <div class="file-info">
                     <i class="fas fa-file-word"></i>
                     <span>${summaryFile.name}</span>
                 </div>
-                <div class="pdf-viewer-container">
-                    <iframe src="${googleViewerUrl}" width="100%" height="600px" style="border: none; border-radius: 8px;"></iframe>
+                <div class="file-info-large">
+                    <i class="fas fa-file-word" style="font-size: 64px; color: #2b579a;"></i>
+                    <h3>${summaryFile.name}</h3>
+                    <p style="color: #666;">파일 크기: ${formatFileSize(summaryFile.size)}</p>
                 </div>
+                <p style="color: #666; text-align: center; margin: 20px 0;">
+                    <i class="fas fa-info-circle"></i> Office 문서는 다운로드하여 확인하세요.
+                </p>
                 <div class="file-actions">
-                    <a href="${summaryFile.path}" download class="btn-download-large">
+                    <a href="${blobUrl}" download="${summaryFile.name}" class="btn-download-large">
                         <i class="fas fa-download"></i> 다운로드
                     </a>
-                    <p style="color: #666; font-size: 14px; margin-top: 10px;">
-                        <i class="fas fa-info-circle"></i> 문서를 볼 수 없는 경우 다운로드하여 확인하세요.
-                    </p>
                 </div>
             </div>
         `;
@@ -298,7 +323,7 @@ function viewProjectSummary(projectId) {
                     다운로드하여 확인하세요.
                 </p>
                 <div class="file-actions">
-                    <a href="${summaryFile.path}" download class="btn-download-large">
+                    <a href="${blobUrl}" download="${summaryFile.name}" class="btn-download-large">
                         <i class="fas fa-download"></i> 다운로드
                     </a>
                 </div>
