@@ -724,6 +724,12 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
+// 전역 스코프에 함수 노출 (HTML onclick에서 호출 가능하도록)
+window.viewProjectSummary = viewProjectSummary;
+window.filterProjects = filterProjects;
+window.closeProjectModal = closeProjectModal;
+window.closeProjectSummaryModal = closeProjectSummaryModal;
+
 // DOM 로드 후 프로젝트 로드
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', loadProjects);
