@@ -1,10 +1,130 @@
 // 관리자 페이지 JavaScript
 
+// 인증 관련 상수
+const ADMIN_CREDENTIALS = {
+    username: 'admin',
+    password: 'ride2025!@'  // 실제 운영 환경에서는 서버 측 인증 필요
+};
+
+const AUTH_SESSION_KEY = 'ride_admin_session';
+const AUTH_EXPIRY_HOURS = 8; // 8시간 동안 세션 유지
+
 let uploadedFiles = [];
 let editingProjectId = null;
 
+// 인증 확인 함수
+function isAuthenticated() {
+    const session = localStorage.getItem(AUTH_SESSION_KEY);
+    if (!session) return false;
+    
+    try {
+        const sessionData = JSON.parse(session);
+        const now = new Date().getTime();
+        
+        // 세션 만료 확인
+        if (now > sessionData.expiry) {
+            localStorage.removeItem(AUTH_SESSION_KEY);
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('세션 확인 오류:', error);
+        return false;
+    }
+}
+
+// 로그인 처리
+function handleLogin(event) {
+    event.preventDefault();
+    
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const errorElement = document.getElementById('loginError');
+    const errorMessage = document.getElementById('loginErrorMessage');
+    
+    // 인증 확인
+    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+        // 세션 생성
+        const now = new Date().getTime();
+        const expiry = now + (AUTH_EXPIRY_HOURS * 60 * 60 * 1000);
+        
+        const sessionData = {
+            username: username,
+            loginTime: now,
+            expiry: expiry
+        };
+        
+        localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(sessionData));
+        
+        // 로그인 성공
+        console.log('✅ 로그인 성공');
+        showAdminPage();
+        
+    } else {
+        // 로그인 실패
+        errorMessage.textContent = '사용자 이름 또는 비밀번호가 올바르지 않습니다';
+        errorElement.classList.add('show');
+        
+        // 3초 후 에러 메시지 숨김
+        setTimeout(() => {
+            errorElement.classList.remove('show');
+        }, 3000);
+        
+        // 비밀번호 필드 초기화
+        document.getElementById('password').value = '';
+        document.getElementById('password').focus();
+    }
+}
+
+// 로그아웃 처리
+function handleLogout() {
+    if (confirm('로그아웃 하시겠습니까?')) {
+        localStorage.removeItem(AUTH_SESSION_KEY);
+        console.log('✅ 로그아웃 완료');
+        showLoginPage();
+    }
+}
+
+// 관리자 페이지 표시
+function showAdminPage() {
+    document.getElementById('loginOverlay').classList.add('hidden');
+    document.getElementById('logoutBtn').style.display = 'block';
+    console.log('관리자 페이지 접근 허용');
+}
+
+// 로그인 페이지 표시
+function showLoginPage() {
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    document.getElementById('logoutBtn').style.display = 'none';
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('username').focus();
+    console.log('로그인 페이지 표시');
+}
+
 // 페이지 로드 시 실행
 document.addEventListener('DOMContentLoaded', function() {
+    // 로그인 폼 이벤트
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+    
+    // 로그아웃 버튼 이벤트
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+    
+    // 인증 확인
+    if (isAuthenticated()) {
+        showAdminPage();
+    } else {
+        showLoginPage();
+    }
+    
+    // 기존 초기화 함수들
     initializeYearOptions(); // 년도 옵션 초기화 추가
     loadProjectsList();
     initializeFileUpload();

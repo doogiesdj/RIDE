@@ -360,9 +360,207 @@
         .btn-add-result:hover {
             background: #218838;
         }
+
+        /* 로그인 스타일 */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .login-overlay.hidden {
+            display: none;
+        }
+
+        .login-container {
+            background: white;
+            padding: 50px 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .login-header i {
+            font-size: 56px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .login-header h2 {
+            font-size: 26px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .login-form-group {
+            position: relative;
+        }
+
+        .login-form-group label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .login-form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .login-form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-error {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .login-error.show {
+            display: block;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
     </style>
 </head>
 <body>
+    <!-- 로그인 화면 -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-container">
+            <div class="login-header">
+                <i class="fas fa-shield-alt"></i>
+                <h2>관리자 로그인</h2>
+                <p>사업 관리 시스템에 접근하려면 로그인이 필요합니다</p>
+            </div>
+            <form id="loginForm" class="login-form">
+                <div class="login-form-group">
+                    <label for="username">
+                        <i class="fas fa-user"></i> 사용자 이름
+                    </label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        placeholder="사용자 이름을 입력하세요"
+                        required
+                        autocomplete="username"
+                    >
+                </div>
+                <div class="login-form-group">
+                    <label for="password">
+                        <i class="fas fa-lock"></i> 비밀번호
+                    </label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="비밀번호를 입력하세요"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> 로그인
+                </button>
+                <div id="loginError" class="login-error">
+                    <i class="fas fa-exclamation-circle"></i> 
+                    <span id="loginErrorMessage">사용자 이름 또는 비밀번호가 올바르지 않습니다</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- 헤더 -->
     <header class="header scrolled">
         <nav class="navbar">
@@ -374,6 +572,9 @@
                     </div>
                 </div>
                 <div style="flex: 1;"></div>
+                <button id="logoutBtn" class="logout-btn" style="display: none;">
+                    <i class="fas fa-sign-out-alt"></i> 로그아웃
+                </button>
                 <a href="index.html" class="btn btn-back">
                     <i class="fas fa-home"></i> 홈으로
                 </a>
