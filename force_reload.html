@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>강제 새로고침</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 600px;
+        }
+        h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: #c82333;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(220,53,69,0.4);
+        }
+        .step {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        .step strong {
+            color: #667eea;
+        }
+        .data-info {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚨 브라우저 캐시 강제 삭제</h1>
+        
+        <div class="warning">
+            <strong>⚠️ 중요 안내</strong><br>
+            현재 브라우저가 오래된 데이터를 캐싱하고 있습니다.<br>
+            아래 버튼을 눌러 완전히 초기화하세요.
+        </div>
+
+        <div class="data-info">
+            <strong>✅ 올바른 데이터 (29개 프로젝트)</strong><br>
+            1. 2022년 대전 UCLG 총회의 도시마케팅 자산구축 방안<br>
+            2. 지자체-대학 협력기반 지역혁신 사업 인재양성 프로그램...<br>
+            3. 대전광역시 인재개발원 혁신 방안<br>
+            ...등 29개
+        </div>
+
+        <button class="btn" onclick="forceReload()">
+            🔥 캐시 삭제 및 강제 새로고침
+        </button>
+
+        <div class="step">
+            <strong>수동 방법:</strong><br>
+            1. Ctrl + Shift + Delete 누르기<br>
+            2. "전체 기간" 선택<br>
+            3. "캐시", "쿠키" 모두 체크<br>
+            4. "지금 지우기" 클릭<br>
+            5. 브라우저 재시작
+        </div>
+    </div>
+
+    <script>
+        function forceReload() {
+            // 모든 저장소 초기화
+            try {
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // 쿠키 삭제
+                document.cookie.split(";").forEach(c => {
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                });
+                
+                // Service Worker 제거
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(registrations => {
+                        registrations.forEach(reg => reg.unregister());
+                    });
+                }
+                
+                // Cache Storage 초기화
+                if ('caches' in window) {
+                    caches.keys().then(names => {
+                        names.forEach(name => caches.delete(name));
+                    });
+                }
+                
+                alert('✅ 캐시가 삭제되었습니다!\n\n이제 Ctrl+Shift+R을 눌러 강제 새로고침하세요.');
+                
+                // 타임스탬프를 추가하여 리다이렉트
+                setTimeout(() => {
+                    window.location.href = '/index.html?nocache=' + Date.now();
+                }, 1000);
+                
+            } catch (error) {
+                alert('오류: ' + error.message + '\n\n수동으로 브라우저 설정에서 캐시를 삭제해주세요.');
+            }
+        }
+        
+        // 페이지 로드 시 자동으로 캐시 무효화 헤더 추가
+        window.addEventListener('load', () => {
+            console.log('📊 올바른 프로젝트 수: 29개');
+            console.log('✅ 첫 번째 프로젝트: 2022년 대전 UCLG 총회의 도시마케팅 자산구축 방안');
+        });
+    </script>
+</body>
+</html>
