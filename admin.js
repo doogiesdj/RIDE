@@ -40,32 +40,102 @@ function initializeForm() {
 // 파일 업로드 초기화
 function initializeFileUpload() {
     const fileInput = document.getElementById('hiddenFileInput');
+    const uploadArea = document.querySelector('.file-upload-area');
+    
+    // 파일 선택 이벤트
     fileInput.addEventListener('change', handleFileSelect);
+    
+    // 드래그 앤 드롭 이벤트
+    if (uploadArea) {
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+    }
+}
+
+// 드래그 오버 처리
+function handleDragOver(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.style.background = '#e3f2fd';
+    event.currentTarget.style.borderColor = '#2196f3';
+}
+
+// 드래그 리브 처리
+function handleDragLeave(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.style.background = 'white';
+    event.currentTarget.style.borderColor = '#667eea';
+}
+
+// 드롭 처리
+function handleDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.style.background = 'white';
+    event.currentTarget.style.borderColor = '#667eea';
+    
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+        // 파일 입력에 파일 할당 (제한적)
+        // 대신 직접 처리
+        const fakeEvent = {
+            target: {
+                files: files,
+                value: ''
+            }
+        };
+        handleFileSelect(fakeEvent);
+    }
 }
 
 // 파일 선택 처리
 function handleFileSelect(event) {
     const files = Array.from(event.target.files);
+    
+    if (files.length === 0) return;
+    
     files.forEach(file => {
-        // 파일 크기 체크 (10MB 제한)
-        if (file.size > 10 * 1024 * 1024) {
-            showAlert('파일 크기는 10MB를 초과할 수 없습니다: ' + file.name, 'error');
+        // 파일 크기 체크 (50MB 제한으로 증가)
+        if (file.size > 50 * 1024 * 1024) {
+            showAlert('파일 크기는 50MB를 초과할 수 없습니다: ' + file.name, 'error');
             return;
         }
         
-        // 파일 타입 체크
-        const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
-                             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                             'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
-        if (!allowedTypes.includes(file.type)) {
-            showAlert('지원하지 않는 파일 형식입니다: ' + file.name, 'error');
+        // 파일 확장자 체크 (더 유연하게)
+        const fileName = file.name.toLowerCase();
+        const allowedExtensions = ['.pdf', '.docx', '.doc', '.xlsx', '.xls', '.pptx', '.ppt', '.hwp', '.txt', '.zip'];
+        const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+        
+        // MIME 타입 체크 (선택적)
+        const allowedTypes = [
+            'application/pdf', 
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'application/vnd.ms-powerpoint',
+            'application/haansofthwp',
+            'application/x-hwp',
+            'text/plain',
+            'application/zip',
+            'application/x-zip-compressed'
+        ];
+        
+        // 확장자나 MIME 타입 중 하나라도 맞으면 허용
+        if (!hasValidExtension && file.type && !allowedTypes.includes(file.type)) {
+            showAlert('지원하지 않는 파일 형식입니다: ' + file.name + '\n(지원 형식: PDF, DOCX, XLSX, PPTX, HWP, TXT, ZIP)', 'error');
             return;
         }
         
         uploadedFiles.push(file);
+        console.log('파일 추가됨:', file.name, '크기:', formatFileSize(file.size), 'MIME:', file.type);
     });
     
     renderFileList();
+    showAlert(`${files.length}개의 파일이 추가되었습니다.`, 'success');
     event.target.value = ''; // 입력 초기화
 }
 
@@ -77,18 +147,39 @@ function renderFileList() {
         return;
     }
     
-    fileList.innerHTML = uploadedFiles.map((file, index) => `
-        <div class="file-item">
-            <div class="file-item-info">
-                <i class="fas fa-file-pdf"></i>
-                <span>${file.name}</span>
-                <span style="color: #999; font-size: 12px;">(${formatFileSize(file.size)})</span>
+    fileList.innerHTML = uploadedFiles.map((file, index) => {
+        const icon = getFileIcon(file.name);
+        return `
+            <div class="file-item">
+                <div class="file-item-info">
+                    <i class="fas ${icon}"></i>
+                    <span>${file.name}</span>
+                    <span style="color: #999; font-size: 12px;">(${formatFileSize(file.size)})</span>
+                </div>
+                <button type="button" class="btn-remove-file" onclick="removeFile(${index})">
+                    <i class="fas fa-times"></i> 삭제
+                </button>
             </div>
-            <button type="button" class="btn-remove-file" onclick="removeFile(${index})">
-                <i class="fas fa-times"></i> 삭제
-            </button>
-        </div>
-    `).join('');
+        `;
+    }).join('');
+}
+
+// 파일 확장자에 따른 아이콘 반환
+function getFileIcon(filename) {
+    const ext = filename.toLowerCase().split('.').pop();
+    const iconMap = {
+        'pdf': 'fa-file-pdf',
+        'doc': 'fa-file-word',
+        'docx': 'fa-file-word',
+        'xls': 'fa-file-excel',
+        'xlsx': 'fa-file-excel',
+        'ppt': 'fa-file-powerpoint',
+        'pptx': 'fa-file-powerpoint',
+        'hwp': 'fa-file-alt',
+        'txt': 'fa-file-alt',
+        'zip': 'fa-file-archive'
+    };
+    return iconMap[ext] || 'fa-file';
 }
 
 // 파일 삭제

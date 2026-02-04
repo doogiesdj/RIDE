@@ -463,9 +463,9 @@
                     <div class="file-upload-area" onclick="document.getElementById('hiddenFileInput').click()">
                         <i class="fas fa-cloud-upload-alt"></i>
                         <p><strong>클릭하여 파일 업로드</strong></p>
-                        <p>PDF, DOCX, XLSX, PPTX 파일 지원</p>
+                        <p>PDF, DOCX, XLSX, PPTX, HWP, TXT, ZIP 등 지원 (최대 50MB)</p>
                     </div>
-                    <input type="file" id="hiddenFileInput" multiple accept=".pdf,.docx,.xlsx,.pptx">
+                    <input type="file" id="hiddenFileInput" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.hwp,.txt,.zip">
                     <div class="file-list" id="fileList"></div>
                 </div>
 
@@ -493,3 +493,13 @@
     <script src="admin.js"></script>
 </body>
 </html>
+<style>
+/* 파일 타입별 아이콘 색상 */
+.file-item .fa-file-pdf { color: #dc3545; }
+.file-item .fa-file-word { color: #2b579a; }
+.file-item .fa-file-excel { color: #217346; }
+.file-item .fa-file-powerpoint { color: #d24726; }
+.file-item .fa-file-alt { color: #6c757d; }
+.file-item .fa-file-archive { color: #ffc107; }
+.file-item .fa-file { color: #6c757d; }
+</style>
