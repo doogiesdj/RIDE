@@ -59,7 +59,18 @@ function handleLogin(event) {
         
         // 로그인 성공
         console.log('✅ 로그인 성공');
-        showAdminPage();
+        
+        // 로그인 성공 피드백
+        const loginBtn = event.target.querySelector('button[type="submit"]');
+        if (loginBtn) {
+            loginBtn.textContent = '✅ 로그인 성공!';
+            loginBtn.style.background = '#28a745';
+        }
+        
+        // 짧은 지연 후 관리 페이지 표시
+        setTimeout(() => {
+            showAdminPage();
+        }, 500);
         
     } else {
         // 로그인 실패

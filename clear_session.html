@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>세션 초기화</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 관리자 세션 초기화</h1>
+        <p>로그인 화면이 표시되지 않는다면 아래 버튼을 클릭하여 세션을 초기화하세요.</p>
+        
+        <div id="status" class="status info">
+            현재 세션 상태를 확인 중...
+        </div>
+        
+        <button class="btn" onclick="clearSession()">
+            <i class="fas fa-trash"></i> 세션 초기화
+        </button>
+        
+        <button class="btn" onclick="goToAdmin()">
+            <i class="fas fa-arrow-right"></i> 관리자 페이지로 이동
+        </button>
+        
+        <p style="margin-top: 30px; font-size: 13px; color: #999;">
+            초기화 후 관리자 페이지에서 다시 로그인하세요.<br>
+            <code>사용자: admin</code> / <code>비밀번호: ride2025!@</code>
+        </p>
+    </div>
+    
+    <script>
+        function checkSession() {
+            const session = localStorage.getItem('ride_admin_session');
+            const statusDiv = document.getElementById('status');
+            
+            if (session) {
+                try {
+                    const data = JSON.parse(session);
+                    const now = new Date().getTime();
+                    const expiry = new Date(data.expiry);
+                    const isExpired = now > data.expiry;
+                    
+                    statusDiv.className = 'status info';
+                    statusDiv.innerHTML = `
+                        ✅ 세션 발견<br>
+                        <small>사용자: ${data.username}</small><br>
+                        <small>만료 시간: ${expiry.toLocaleString()}</small><br>
+                        <small>${isExpired ? '⚠️ 만료됨' : '✅ 유효함'}</small>
+                    `;
+                } catch (e) {
+                    statusDiv.className = 'status info';
+                    statusDiv.textContent = '⚠️ 세션 데이터가 손상되었습니다';
+                }
+            } else {
+                statusDiv.className = 'status info';
+                statusDiv.textContent = '❌ 세션이 없습니다 (로그인 필요)';
+            }
+        }
+        
+        function clearSession() {
+            localStorage.removeItem('ride_admin_session');
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = 'status success';
+            statusDiv.textContent = '✅ 세션이 초기화되었습니다! 이제 관리자 페이지로 이동하세요.';
+            console.log('세션 초기화 완료');
+        }
+        
+        function goToAdmin() {
+            window.location.href = 'admin.html?v=' + new Date().getTime();
+        }
+        
+        // 페이지 로드 시 세션 확인
+        checkSession();
+    </script>
+</body>
+</html>
