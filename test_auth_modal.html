@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인증 모달 테스트 - RIDE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .test-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        .test-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .test-info h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .test-info p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        /* 로그인 모달 스타일 */
+        .auth-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .auth-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        .auth-modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-modal-header i {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .auth-modal-header h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .auth-modal-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .auth-error {
+            display: none;
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .auth-error.show {
+            display: block;
+            animation: shake 0.5s;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .auth-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-cancel {
+            background: #e1e8ed;
+            color: #666;
+        }
+
+        .btn-cancel:hover {
+            background: #d1d8dd;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔐 인증 모달 테스트</h1>
+        
+        <div class="test-info">
+            <h3>테스트 목적</h3>
+            <p>✅ '사업 관리' 버튼 클릭 시 로그인 모달이 정상적으로 표시되는지 확인</p>
+            <p>✅ 로그인 성공 시 관리 페이지로 이동하는지 확인</p>
+            <p>✅ 취소 버튼 클릭 시 모달이 닫히는지 확인</p>
+        </div>
+
+        <div class="test-info">
+            <h3>로그인 정보</h3>
+            <p><strong>사용자 이름:</strong> admin</p>
+            <p><strong>비밀번호:</strong> ride2025!@</p>
+        </div>
+
+        <button class="btn btn-primary" onclick="showAuthModal()">
+            <i class="fas fa-cog"></i> 사업 관리 (테스트)
+        </button>
+
+        <button class="btn btn-secondary" onclick="window.location.href='/'">
+            <i class="fas fa-home"></i> 메인 페이지로 이동
+        </button>
+
+        <div id="status" class="status" style="display: none;"></div>
+    </div>
+
+    <!-- 인증 모달 -->
+    <div id="authModal" class="auth-modal">
+        <div class="auth-modal-content">
+            <div class="auth-modal-header">
+                <i class="fas fa-shield-alt"></i>
+                <h2>관리자 인증</h2>
+                <p>사업 관리 페이지는 관리자만 접근할 수 있습니다</p>
+            </div>
+
+            <div id="authError" class="auth-error"></div>
+
+            <form id="authForm" onsubmit="handleAuth(event)">
+                <div class="form-group">
+                    <label for="username">
+                        <i class="fas fa-user"></i> 사용자 이름
+                    </label>
+                    <input type="text" id="username" name="username" required autocomplete="username">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">
+                        <i class="fas fa-lock"></i> 비밀번호
+                    </label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+
+                <div class="auth-buttons">
+                    <button type="button" class="btn-cancel" onclick="hideAuthModal()">취소</button>
+                    <button type="submit" class="btn-login">로그인</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        console.log('🧪 인증 모달 테스트 페이지 로드 완료');
+
+        const ADMIN_CREDENTIALS = {
+            username: 'admin',
+            password: 'ride2025!@'
+        };
+
+        function showAuthModal() {
+            console.log('📋 사업 관리 버튼 클릭');
+            const modal = document.getElementById('authModal');
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            showStatus('✅ 로그인 모달이 표시되었습니다', 'success');
+        }
+
+        function hideAuthModal() {
+            console.log('❌ 모달 닫기');
+            const modal = document.getElementById('authModal');
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+            
+            // 폼 초기화
+            document.getElementById('authForm').reset();
+            document.getElementById('authError').classList.remove('show');
+            
+            showStatus('모달이 닫혔습니다', 'info');
+        }
+
+        function handleAuth(event) {
+            event.preventDefault();
+            console.log('🔐 로그인 시도');
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            console.log('입력된 사용자:', username);
+
+            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+                console.log('✅ 인증 성공!');
+                showStatus('✅ 로그인 성공! 관리 페이지로 이동합니다...', 'success');
+                
+                // 임시 토큰 생성
+                const token = Date.now().toString(36) + Math.random().toString(36).substr(2);
+                localStorage.setItem('ride_temp_auth', token);
+                
+                setTimeout(() => {
+                    window.location.href = 'admin.html';
+                }, 1000);
+            } else {
+                console.log('❌ 인증 실패');
+                const errorDiv = document.getElementById('authError');
+                errorDiv.textContent = '사용자 이름 또는 비밀번호가 올바르지 않습니다';
+                errorDiv.classList.add('show');
+                
+                document.getElementById('password').value = '';
+                document.getElementById('password').focus();
+                
+                showStatus('❌ 로그인 실패', 'error');
+                
+                setTimeout(() => {
+                    errorDiv.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+            status.style.display = 'block';
+        }
+
+        // ESC 키로 모달 닫기
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideAuthModal();
+            }
+        });
+
+        // 모달 배경 클릭 시 닫기
+        document.getElementById('authModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideAuthModal();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>버튼 디버그</title>
+    <script>
+        window.addEventListener('load', function() {
+            console.log('=== 디버그 시작 ===');
+            
+            // 메인 페이지의 버튼 찾기
+            setTimeout(function() {
+                const btn = window.parent.document.getElementById('adminAccessBtn');
+                if (btn) {
+                    console.log('✅ 버튼 찾음:', btn);
+                    console.log('onclick 속성:', btn.getAttribute('onclick'));
+                    console.log('버튼 텍스트:', btn.textContent);
+                    
+                    // 강제로 클릭
+                    console.log('버튼 클릭 시도...');
+                    btn.click();
+                } else {
+                    console.log('❌ 버튼을 찾을 수 없습니다');
+                }
+            }, 1000);
+        });
+    </script>
+</head>
+<body>
+    <h1>디버깅 중...</h1>
+    <p>콘솔을 확인하세요.</p>
+</body>
+</html>

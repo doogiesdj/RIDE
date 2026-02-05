@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실제 클릭 테스트</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .project-card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        .btn-view-file {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-view-file:hover {
+            background: #2980b9;
+        }
+        #log {
+            background: #f5f5f5;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 900px;
+            border-radius: 8px;
+        }
+        .modal-body {
+            min-height: 500px;
+        }
+    </style>
+</head>
+<body>
+    <h1>실제 파일 보기 테스트</h1>
+    <p>이 페이지는 실제 프로젝트 카드와 동일한 구조로 테스트합니다.</p>
+    
+    <div id="cards"></div>
+    
+    <div id="log"></div>
+    
+    <!-- 모달 -->
+    <div id="projectSummaryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalSummaryTitle">사업 요약</h3>
+                <button onclick="closeModal()">닫기</button>
+            </div>
+            <div class="modal-body" id="modalSummaryBody">
+                로딩 중...
+            </div>
+        </div>
+    </div>
+    
+    <script src="projects.js"></script>
+    <script>
+        const logDiv = document.getElementById('log');
+        
+        function log(msg) {
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${msg}\n`;
+            console.log(msg);
+        }
+        
+        function closeModal() {
+            document.getElementById('projectSummaryModal').style.display = 'none';
+        }
+        
+        // projects.js 로드 대기
+        setTimeout(() => {
+            log('=== 초기화 시작 ===');
+            log('window.viewProjectSummary 타입: ' + typeof window.viewProjectSummary);
+            log('window.projectsData 길이: ' + (window.projectsData ? window.projectsData.length : 'undefined'));
+            
+            if (!window.projectsData || window.projectsData.length === 0) {
+                log('❌ projectsData가 없습니다!');
+                return;
+            }
+            
+            const cardsDiv = document.getElementById('cards');
+            
+            // 파일이 있는 첫 3개 프로젝트만 표시
+            const projectsWithFiles = window.projectsData.filter(p => p.files && p.files.length > 0).slice(0, 3);
+            
+            log(`✅ 파일 있는 프로젝트 ${projectsWithFiles.length}개 찾음`);
+            
+            projectsWithFiles.forEach(project => {
+                const card = document.createElement('div');
+                card.className = 'project-card';
+                card.innerHTML = `
+                    <h3>${project.title}</h3>
+                    <p>발주처: ${project.client}</p>
+                    <p>파일: ${project.files.length}개</p>
+                    <button class="btn-view-file" onclick="testClick('${project.id}')">
+                        테스트 클릭 (직접 함수)
+                    </button>
+                    <button class="btn-view-file" onclick="window.viewProjectSummary('${project.id}')">
+                        파일 보기 (실제)
+                    </button>
+                `;
+                cardsDiv.appendChild(card);
+                log(`✓ 카드 생성: ${project.title}`);
+            });
+            
+        }, 2000);
+        
+        function testClick(projectId) {
+            log('🔵 testClick 호출됨: ' + projectId);
+            
+            try {
+                if (typeof window.viewProjectSummary !== 'function') {
+                    log('❌ viewProjectSummary 함수가 없습니다!');
+                    return;
+                }
+                
+                log('✅ viewProjectSummary 함수 발견');
+                log('🚀 viewProjectSummary 호출 시작...');
+                
+                window.viewProjectSummary(projectId);
+                
+                log('✅ viewProjectSummary 호출 완료');
+                
+            } catch (error) {
+                log('❌ 오류 발생: ' + error.message);
+                console.error(error);
+            }
+        }
+        
+        // 전역 오류 핸들러
+        window.addEventListener('error', function(e) {
+            log('❌ 전역 오류: ' + e.message);
+        });
+        
+        window.addEventListener('unhandledrejection', function(e) {
+            log('❌ Promise 거부: ' + e.reason);
+        });
+    </script>
+</body>
+</html>

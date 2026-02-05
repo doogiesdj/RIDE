@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>모달 클릭 테스트</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 50px;
+            background: #f5f5f5;
+        }
+        .test-btn {
+            background: #667eea;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        .test-btn:hover {
+            background: #5568d3;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal.show {
+            display: block;
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 400px;
+            border-radius: 10px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        #log {
+            background: white;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 모달 표시 테스트</h1>
+    
+    <button class="test-btn" onclick="testModal1()">테스트 1: display만 변경</button>
+    <button class="test-btn" onclick="testModal2()">테스트 2: class 추가</button>
+    <button class="test-btn" onclick="testModal3()">테스트 3: 모든 스타일 변경</button>
+    <button class="test-btn" onclick="clearLog()">로그 지우기</button>
+    
+    <div id="log"></div>
+    
+    <!-- 모달 -->
+    <div id="testModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>✅ 모달이 표시되었습니다!</h2>
+            <p>이 메시지가 보인다면 모달이 정상적으로 작동하는 것입니다.</p>
+            <button class="test-btn" onclick="closeModal()">닫기</button>
+        </div>
+    </div>
+    
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+        
+        function testModal1() {
+            log('테스트 1: display만 변경');
+            const modal = document.getElementById('testModal');
+            modal.style.display = 'block';
+            log('modal.style.display = "block" 실행됨');
+            log('결과: ' + (modal.offsetHeight > 0 ? '모달이 보입니다' : '모달이 안 보입니다'));
+        }
+        
+        function testModal2() {
+            log('테스트 2: class 추가');
+            const modal = document.getElementById('testModal');
+            modal.classList.add('show');
+            log('modal.classList.add("show") 실행됨');
+            log('결과: ' + (modal.offsetHeight > 0 ? '모달이 보입니다' : '모달이 안 보입니다'));
+        }
+        
+        function testModal3() {
+            log('테스트 3: 모든 스타일 변경');
+            const modal = document.getElementById('testModal');
+            modal.classList.add('show');
+            modal.style.display = 'block';
+            modal.style.opacity = '1';
+            modal.style.visibility = 'visible';
+            log('모든 스타일 적용 완료');
+            log('결과: ' + (modal.offsetHeight > 0 ? '모달이 보입니다' : '모달이 안 보입니다'));
+        }
+        
+        function closeModal() {
+            log('모달 닫기');
+            const modal = document.getElementById('testModal');
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+            modal.style.opacity = '0';
+            modal.style.visibility = 'hidden';
+        }
+        
+        log('페이지 로드 완료');
+    </script>
+</body>
+</html>

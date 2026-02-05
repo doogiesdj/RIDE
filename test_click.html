@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>파일보기 버튼 테스트</title>
+</head>
+<body>
+    <h1>테스트 페이지</h1>
+    <button onclick="testFunction()">테스트 버튼</button>
+    
+    <script>
+        function testFunction() {
+            alert('함수가 호출되었습니다!');
+        }
+        console.log('테스트 스크립트 로드됨');
+        console.log('window.testFunction:', typeof window.testFunction);
+    </script>
+    
+    <script src="projects.js"></script>
+    <script>
+        setTimeout(() => {
+            console.log('projects.js 로드 후:');
+            console.log('window.viewProjectSummary:', typeof window.viewProjectSummary);
+            console.log('window.filterProjects:', typeof window.filterProjects);
+        }, 1000);
+    </script>
+</body>
+</html>
