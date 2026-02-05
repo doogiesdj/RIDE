@@ -611,15 +611,33 @@
             password: 'ride2025!@'
         };
 
-        // 사업 관리 버튼 클릭 이벤트
-        document.addEventListener('DOMContentLoaded', function() {
+        // 사업 관리 버튼 클릭 이벤트 (즉시 실행)
+        function initAdminButton() {
             const adminAccessBtn = document.getElementById('adminAccessBtn');
             if (adminAccessBtn) {
-                adminAccessBtn.addEventListener('click', function() {
+                console.log('✅ 사업 관리 버튼 찾음, 이벤트 리스너 등록');
+                adminAccessBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     console.log('🔐 사업 관리 버튼 클릭 → 인증 모달 표시');
                     showAdminAuthModal();
                 });
+            } else {
+                console.error('❌ adminAccessBtn을 찾을 수 없습니다');
             }
+        }
+        
+        // DOM이 준비되면 실행 (여러 방법으로 시도)
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAdminButton);
+        } else {
+            initAdminButton();
+        }
+        
+        // 모든 리소스 로드 후에도 한 번 더 시도
+        window.addEventListener('load', function() {
+            console.log('🔄 window.load에서 재시도');
+            initAdminButton();
         });
 
         // 인증 모달 표시
