@@ -136,6 +136,21 @@ function showLoginPage() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('=== 🚀 관리자 페이지 로드 시작 ===');
     
+    // 임시 접근 토큰 확인 (메인 페이지에서 로그인 후 접근)
+    const tempAccess = localStorage.getItem('ride_admin_temp_access');
+    if (tempAccess) {
+        console.log('✅ 메인 페이지에서 인증됨 → 접근 허용');
+        // 임시 토큰 즉시 삭제
+        localStorage.removeItem('ride_admin_temp_access');
+        // 관리 페이지 표시
+        showAdminPage();
+    } else {
+        console.log('❌ 인증 없이 직접 접근 → 메인 페이지로 리다이렉트');
+        alert('접근 권한이 없습니다.\n메인 페이지에서 "사업 관리" 버튼을 통해 로그인하세요.');
+        window.location.href = 'index.html';
+        return;
+    }
+    
     // localStorage 전체 확인
     console.log('📦 localStorage 상태:');
     for (let i = 0; i < localStorage.length; i++) {
@@ -160,26 +175,14 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('✅ 로그아웃 버튼 이벤트 등록');
     }
     
-    // 홈으로 버튼 이벤트 (세션 삭제 후 메인 페이지 이동)
+    // 홈으로 버튼 이벤트 (즉시 메인 페이지로)
     const homeBtn = document.getElementById('homeBtn');
     if (homeBtn) {
         homeBtn.addEventListener('click', function() {
-            console.log('🏠 홈으로 버튼 클릭 → 세션 삭제');
-            localStorage.removeItem(AUTH_SESSION_KEY);
-            console.log('✅ 세션 삭제 완료');
+            console.log('🏠 홈으로 버튼 클릭 → 메인 페이지로 이동');
             window.location.href = 'index.html';
         });
-        console.log('✅ 홈으로 버튼 이벤트 등록 (세션 자동 삭제)');
-    }
-    
-    // 인증 확인
-    console.log('🔐 인증 확인 시작...');
-    if (isAuthenticated()) {
-        console.log('➡️ showAdminPage() 호출');
-        showAdminPage();
-    } else {
-        console.log('➡️ showLoginPage() 호출');
-        showLoginPage();
+        console.log('✅ 홈으로 버튼 이벤트 등록');
     }
     
     // 기존 초기화 함수들

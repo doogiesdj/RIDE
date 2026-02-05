@@ -173,9 +173,9 @@
                     <p>디지털경제사회연구원의 사업수행실적을 확인하세요</p>
                 </div>
                 <div class="projects-actions" style="text-align: right; margin-bottom: 20px;">
-                    <a href="admin.html" class="btn btn-primary">
+                    <button id="adminAccessBtn" class="btn btn-primary" style="border: none; cursor: pointer;">
                         <i class="fas fa-cog"></i> 사업 관리
-                    </a>
+                    </button>
                 </div>
                 <div class="projects-content">
                     <div class="projects-filter" id="projectsFilter">
@@ -547,6 +547,154 @@
             </div>
         </div>
     </div>
+
+    <!-- 관리자 인증 모달 -->
+    <div id="adminAuthModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 450px; margin: 10% auto;">
+            <div class="modal-header" style="border-bottom: 2px solid #667eea;">
+                <h3 style="margin: 0; color: #333; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-shield-alt" style="color: #667eea;"></i>
+                    관리자 인증
+                </h3>
+                <button class="close-modal" onclick="closeAdminAuthModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 30px;">
+                <p style="color: #666; margin-bottom: 25px; text-align: center;">
+                    사업 관리 시스템에 접근하려면 인증이 필요합니다
+                </p>
+                <form id="adminAuthForm" onsubmit="handleAdminAuth(event)">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: 600; color: #555; margin-bottom: 8px;">
+                            <i class="fas fa-user"></i> 사용자 이름
+                        </label>
+                        <input 
+                            type="text" 
+                            id="adminUsername" 
+                            placeholder="사용자 이름을 입력하세요"
+                            required
+                            style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box;"
+                        >
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: 600; color: #555; margin-bottom: 8px;">
+                            <i class="fas fa-lock"></i> 비밀번호
+                        </label>
+                        <input 
+                            type="password" 
+                            id="adminPassword" 
+                            placeholder="비밀번호를 입력하세요"
+                            required
+                            style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; box-sizing: border-box;"
+                        >
+                    </div>
+                    <div id="adminAuthError" style="color: #e74c3c; font-size: 14px; margin-bottom: 15px; text-align: center; display: none;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span id="adminAuthErrorMsg">사용자 이름 또는 비밀번호가 올바르지 않습니다</span>
+                    </div>
+                    <button 
+                        type="submit" 
+                        style="width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;"
+                    >
+                        <i class="fas fa-sign-in-alt"></i> 로그인
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 관리자 인증 설정
+        const ADMIN_CREDENTIALS = {
+            username: 'admin',
+            password: 'ride2025!@'
+        };
+
+        // 사업 관리 버튼 클릭 이벤트
+        document.addEventListener('DOMContentLoaded', function() {
+            const adminAccessBtn = document.getElementById('adminAccessBtn');
+            if (adminAccessBtn) {
+                adminAccessBtn.addEventListener('click', function() {
+                    console.log('🔐 사업 관리 버튼 클릭 → 인증 모달 표시');
+                    showAdminAuthModal();
+                });
+            }
+        });
+
+        // 인증 모달 표시
+        function showAdminAuthModal() {
+            const modal = document.getElementById('adminAuthModal');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            document.getElementById('adminUsername').focus();
+            document.getElementById('adminAuthError').style.display = 'none';
+            document.getElementById('adminUsername').value = '';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        // 인증 모달 닫기
+        function closeAdminAuthModal() {
+            const modal = document.getElementById('adminAuthModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // 인증 처리
+        function handleAdminAuth(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('adminUsername').value.trim();
+            const password = document.getElementById('adminPassword').value;
+            
+            console.log('🔍 인증 시도:', username);
+            
+            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+                console.log('✅ 인증 성공 → admin.html로 이동');
+                
+                // 임시 접근 토큰 생성
+                const sessionData = {
+                    username: username,
+                    loginTime: new Date().getTime(),
+                    fromMainPage: true
+                };
+                localStorage.setItem('ride_admin_temp_access', JSON.stringify(sessionData));
+                
+                // 관리 페이지로 이동
+                window.location.href = 'admin.html';
+            } else {
+                console.log('❌ 인증 실패');
+                
+                const errorDiv = document.getElementById('adminAuthError');
+                errorDiv.style.display = 'block';
+                
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 3000);
+                
+                document.getElementById('adminPassword').value = '';
+                document.getElementById('adminPassword').focus();
+            }
+        }
+
+        // 모달 외부 클릭 시 닫기
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('adminAuthModal');
+            if (event.target === modal) {
+                closeAdminAuthModal();
+            }
+        });
+
+        // ESC 키로 모달 닫기
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const modal = document.getElementById('adminAuthModal');
+                if (modal.style.display === 'block') {
+                    closeAdminAuthModal();
+                }
+            }
+        });
+    </script>
 
     <script src="projects.js"></script>
     <script src="script.js"></script>
