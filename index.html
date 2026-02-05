@@ -176,29 +176,49 @@
                     // 인증 모달 즉시 정의 (버튼보다 먼저)
                     function showAdminAuthModal() {
                         console.log('🔐 showAdminAuthModal 호출됨');
-                        const modal = document.getElementById('adminAuthModal');
-                        if (modal) {
-                            // CSS 클래스 추가 (중요!)
-                            modal.classList.add('show');
-                            modal.style.display = 'block';
-                            modal.style.opacity = '1';
-                            modal.style.visibility = 'visible';
-                            document.body.style.overflow = 'hidden';
+                        try {
+                            const modal = document.getElementById('adminAuthModal');
+                            console.log('모달 요소:', modal);
                             
-                            setTimeout(function() {
-                                const usernameInput = document.getElementById('adminUsername');
-                                if (usernameInput) usernameInput.focus();
-                            }, 100);
-                            
-                            const errorDiv = document.getElementById('adminAuthError');
-                            if (errorDiv) errorDiv.style.display = 'none';
-                            const username = document.getElementById('adminUsername');
-                            const password = document.getElementById('adminPassword');
-                            if (username) username.value = '';
-                            if (password) password.value = '';
-                            console.log('✅ 모달 표시 완료');
-                        } else {
-                            console.error('❌ adminAuthModal을 찾을 수 없습니다');
+                            if (modal) {
+                                console.log('모달 찾음! 스타일 적용 시작...');
+                                
+                                // CSS 클래스 추가 (중요!)
+                                modal.classList.add('show');
+                                console.log('- .show 클래스 추가 완료');
+                                
+                                modal.style.display = 'block';
+                                console.log('- display: block 완료');
+                                
+                                modal.style.opacity = '1';
+                                console.log('- opacity: 1 완료');
+                                
+                                modal.style.visibility = 'visible';
+                                console.log('- visibility: visible 완료');
+                                
+                                document.body.style.overflow = 'hidden';
+                                console.log('- body overflow 완료');
+                                
+                                setTimeout(function() {
+                                    const usernameInput = document.getElementById('adminUsername');
+                                    if (usernameInput) usernameInput.focus();
+                                }, 100);
+                                
+                                const errorDiv = document.getElementById('adminAuthError');
+                                if (errorDiv) errorDiv.style.display = 'none';
+                                const username = document.getElementById('adminUsername');
+                                const password = document.getElementById('adminPassword');
+                                if (username) username.value = '';
+                                if (password) password.value = '';
+                                
+                                console.log('✅ 모달 표시 완료!');
+                            } else {
+                                console.error('❌ adminAuthModal을 찾을 수 없습니다');
+                                alert('오류: 로그인 모달을 찾을 수 없습니다.');
+                            }
+                        } catch (error) {
+                            console.error('❌❌❌ showAdminAuthModal 에러:', error);
+                            alert('오류 발생: ' + error.message);
                         }
                     }
                     
