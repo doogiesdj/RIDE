@@ -178,12 +178,18 @@
                         console.log('🔐 showAdminAuthModal 호출됨');
                         const modal = document.getElementById('adminAuthModal');
                         if (modal) {
+                            // CSS 클래스 추가 (중요!)
+                            modal.classList.add('show');
                             modal.style.display = 'block';
+                            modal.style.opacity = '1';
+                            modal.style.visibility = 'visible';
                             document.body.style.overflow = 'hidden';
+                            
                             setTimeout(function() {
                                 const usernameInput = document.getElementById('adminUsername');
                                 if (usernameInput) usernameInput.focus();
                             }, 100);
+                            
                             const errorDiv = document.getElementById('adminAuthError');
                             if (errorDiv) errorDiv.style.display = 'none';
                             const username = document.getElementById('adminUsername');
@@ -195,6 +201,61 @@
                             console.error('❌ adminAuthModal을 찾을 수 없습니다');
                         }
                     }
+                    
+                    function closeAdminAuthModal() {
+                        console.log('❌ 모달 닫기');
+                        const modal = document.getElementById('adminAuthModal');
+                        if (modal) {
+                            modal.classList.remove('show');
+                            modal.style.display = 'none';
+                            modal.style.opacity = '0';
+                            modal.style.visibility = 'hidden';
+                            document.body.style.overflow = '';
+                        }
+                    }
+                    
+                    function handleAdminAuth(event) {
+                        event.preventDefault();
+                        console.log('🔍 인증 시도');
+                        
+                        const username = document.getElementById('adminUsername').value.trim();
+                        const password = document.getElementById('adminPassword').value;
+                        
+                        // 관리자 인증 정보
+                        const ADMIN_USERNAME = 'admin';
+                        const ADMIN_PASSWORD = 'ride2025!@';
+                        
+                        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                            console.log('✅ 인증 성공 → admin.html로 이동');
+                            
+                            // 임시 접근 토큰 생성
+                            const sessionData = {
+                                username: username,
+                                loginTime: new Date().getTime(),
+                                fromMainPage: true
+                            };
+                            localStorage.setItem('ride_admin_temp_access', JSON.stringify(sessionData));
+                            
+                            // 관리 페이지로 이동
+                            window.location.href = 'admin.html';
+                        } else {
+                            console.log('❌ 인증 실패');
+                            
+                            const errorDiv = document.getElementById('adminAuthError');
+                            if (errorDiv) {
+                                errorDiv.style.display = 'block';
+                                errorDiv.textContent = '사용자 이름 또는 비밀번호가 올바르지 않습니다';
+                                
+                                setTimeout(() => {
+                                    errorDiv.style.display = 'none';
+                                }, 3000);
+                            }
+                            
+                            document.getElementById('adminPassword').value = '';
+                            document.getElementById('adminPassword').focus();
+                        }
+                    }
+                    
                     console.log('✅ showAdminAuthModal 함수 정의 완료');
                 </script>
                 <div class="projects-actions" style="text-align: right; margin-bottom: 20px;">
