@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>세션 강제 삭제</title>
+</head>
+<body>
+    <h1>세션 강제 삭제 중...</h1>
+    <script>
+        // 모든 관련 localStorage 항목 삭제
+        localStorage.removeItem('ride_admin_session');
+        localStorage.removeItem('projects');
+        
+        // 모든 localStorage 확인
+        console.log('localStorage 항목 수:', localStorage.length);
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            console.log(`  ${key}: ${localStorage.getItem(key).substring(0, 50)}...`);
+        }
+        
+        alert('✅ 세션이 완전히 삭제되었습니다!\n\n이제 메인 페이지로 이동한 후 "사업 관리" 버튼을 클릭하세요.');
+        
+        // 메인 페이지로 이동
+        window.location.href = '/';
+    </script>
+</body>
+</html>
