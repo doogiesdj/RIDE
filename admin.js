@@ -160,6 +160,18 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('✅ 로그아웃 버튼 이벤트 등록');
     }
     
+    // 홈으로 버튼 이벤트 (세션 삭제 후 메인 페이지 이동)
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) {
+        homeBtn.addEventListener('click', function() {
+            console.log('🏠 홈으로 버튼 클릭 → 세션 삭제');
+            localStorage.removeItem(AUTH_SESSION_KEY);
+            console.log('✅ 세션 삭제 완료');
+            window.location.href = 'index.html';
+        });
+        console.log('✅ 홈으로 버튼 이벤트 등록 (세션 자동 삭제)');
+    }
+    
     // 인증 확인
     console.log('🔐 인증 확인 시작...');
     if (isAuthenticated()) {
