@@ -15,21 +15,39 @@ let editingProjectId = null;
 // 인증 확인 함수
 function isAuthenticated() {
     const session = localStorage.getItem(AUTH_SESSION_KEY);
-    if (!session) return false;
+    console.log('🔍 인증 확인:', {
+        sessionKey: AUTH_SESSION_KEY,
+        sessionExists: !!session,
+        sessionValue: session ? session.substring(0, 50) + '...' : 'null'
+    });
+    
+    if (!session) {
+        console.log('❌ 세션 없음 → 로그인 필요');
+        return false;
+    }
     
     try {
         const sessionData = JSON.parse(session);
         const now = new Date().getTime();
         
+        console.log('📅 세션 정보:', {
+            username: sessionData.username,
+            loginTime: new Date(sessionData.loginTime).toLocaleString(),
+            expiry: new Date(sessionData.expiry).toLocaleString(),
+            isExpired: now > sessionData.expiry
+        });
+        
         // 세션 만료 확인
         if (now > sessionData.expiry) {
+            console.log('⏰ 세션 만료 → 삭제');
             localStorage.removeItem(AUTH_SESSION_KEY);
             return false;
         }
         
+        console.log('✅ 세션 유효 → 관리 페이지 접근 허용');
         return true;
     } catch (error) {
-        console.error('세션 확인 오류:', error);
+        console.error('❌ 세션 확인 오류:', error);
         return false;
     }
 }
@@ -116,22 +134,39 @@ function showLoginPage() {
 
 // 페이지 로드 시 실행
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== 🚀 관리자 페이지 로드 시작 ===');
+    
+    // localStorage 전체 확인
+    console.log('📦 localStorage 상태:');
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        console.log(`  - ${key}: ${value.substring(0, 50)}${value.length > 50 ? '...' : ''}`);
+    }
+    
     // 로그인 폼 이벤트
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
+        console.log('✅ 로그인 폼 이벤트 등록');
+    } else {
+        console.error('❌ 로그인 폼을 찾을 수 없습니다!');
     }
     
     // 로그아웃 버튼 이벤트
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', handleLogout);
+        console.log('✅ 로그아웃 버튼 이벤트 등록');
     }
     
     // 인증 확인
+    console.log('🔐 인증 확인 시작...');
     if (isAuthenticated()) {
+        console.log('➡️ showAdminPage() 호출');
         showAdminPage();
     } else {
+        console.log('➡️ showLoginPage() 호출');
         showLoginPage();
     }
     
