@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로젝트 디버그 페이지</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .debug-info {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .project-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+        }
+        .modal-content {
+            position: relative;
+            background: white;
+            margin: 50px auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 1000px;
+            border-radius: 8px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 10px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 프로젝트 파일 보기 디버그</h1>
+    
+    <div class="debug-info">
+        <h3>로드 상태</h3>
+        <div id="loadStatus">로딩 중...</div>
+    </div>
+    
+    <div class="debug-info">
+        <h3>프로젝트 목록</h3>
+        <div id="projectsList"></div>
+    </div>
+    
+    <!-- 모달 -->
+    <div id="projectSummaryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalSummaryTitle"></h2>
+            <div id="modalSummaryBody"></div>
+        </div>
+    </div>
+    
+    <script>
+        let projectsData = [];
+        
+        // 프로젝트 로드
+        async function loadProjects() {
+            try {
+                console.log('=== 프로젝트 로드 시작 ===');
+                const response = await fetch('data/projects.json?bust=' + Date.now());
+                projectsData = await response.json();
+                
+                document.getElementById('loadStatus').innerHTML = `
+                    <strong>✅ 로드 성공!</strong><br>
+                    총 프로젝트: ${projectsData.length}개<br>
+                    파일 있는 프로젝트: ${projectsData.filter(p => p.files && p.files.length > 0).length}개
+                `;
+                
+                console.log('프로젝트 데이터:', projectsData);
+                renderProjects();
+            } catch (error) {
+                console.error('로드 오류:', error);
+                document.getElementById('loadStatus').innerHTML = `<strong style="color: red;">❌ 로드 실패: ${error.message}</strong>`;
+            }
+        }
+        
+        // 프로젝트 렌더링
+        function renderProjects() {
+            const container = document.getElementById('projectsList');
+            const projectsWithFiles = projectsData.filter(p => p.files && p.files.length > 0);
+            
+            container.innerHTML = projectsWithFiles.map(project => `
+                <div class="project-card">
+                    <h4>${project.title}</h4>
+                    <p><strong>년도:</strong> ${project.year} | <strong>발주처:</strong> ${project.client}</p>
+                    <p><strong>파일:</strong> ${project.files.length}개 - ${project.files[0].name}</p>
+                    <button onclick="viewProjectSummary('${project.id}')">파일 보기</button>
+                    <button onclick="testDirectBlob('${project.id}')">직접 Blob 테스트</button>
+                </div>
+            `).join('');
+        }
+        
+        // 파일 보기
+        async function viewProjectSummary(projectId) {
+            console.log('=== viewProjectSummary 호출 ===');
+            console.log('projectId:', projectId);
+            
+            const project = projectsData.find(p => p.id === projectId);
+            console.log('프로젝트:', project);
+            
+            if (!project) {
+                alert('프로젝트를 찾을 수 없습니다.');
+                return;
+            }
+            
+            if (!project.files || project.files.length === 0) {
+                alert('파일이 없습니다.');
+                return;
+            }
+            
+            const file = project.files[0];
+            console.log('파일:', file);
+            console.log('파일 data 길이:', file.data ? file.data.length : 'undefined');
+            
+            try {
+                // Base64를 Blob URL로 변환
+                const base64Data = file.data.split(',')[1];
+                console.log('Base64 데이터 길이:', base64Data.length);
+                
+                const byteCharacters = atob(base64Data);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: file.type });
+                const blobUrl = URL.createObjectURL(blob);
+                
+                console.log('Blob URL 생성:', blobUrl);
+                
+                // 모달 표시
+                const modal = document.getElementById('projectSummaryModal');
+                const modalTitle = document.getElementById('modalSummaryTitle');
+                const modalBody = document.getElementById('modalSummaryBody');
+                
+                modalTitle.textContent = project.title + ' - 파일 보기';
+                modalBody.innerHTML = `
+                    <div style="text-align: center; margin: 20px 0;">
+                        <h3>${file.name}</h3>
+                        <p>파일 크기: ${(file.size / 1024).toFixed(2)} KB</p>
+                    </div>
+                    <iframe src="${blobUrl}" width="100%" height="600px" style="border: 1px solid #ddd;"></iframe>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <a href="${blobUrl}" download="${file.name}" style="display: inline-block; padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 4px;">
+                            다운로드
+                        </a>
+                        <a href="${blobUrl}" target="_blank" style="display: inline-block; padding: 10px 20px; background: #17a2b8; color: white; text-decoration: none; border-radius: 4px; margin-left: 10px;">
+                            새 창에서 열기
+                        </a>
+                    </div>
+                `;
+                
+                modal.style.display = 'block';
+                console.log('모달 표시 완료');
+            } catch (error) {
+                console.error('변환 오류:', error);
+                alert('파일 변환 오류: ' + error.message);
+            }
+        }
+        
+        // 직접 Blob 테스트
+        function testDirectBlob(projectId) {
+            const project = projectsData.find(p => p.id === projectId);
+            if (!project || !project.files || !project.files[0]) {
+                alert('파일을 찾을 수 없습니다.');
+                return;
+            }
+            
+            const file = project.files[0];
+            try {
+                const base64Data = file.data.split(',')[1];
+                const byteCharacters = atob(base64Data);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: file.type });
+                const blobUrl = URL.createObjectURL(blob);
+                
+                // 새 창에서 바로 열기
+                window.open(blobUrl, '_blank');
+                console.log('새 창에서 PDF 열기:', blobUrl);
+            } catch (error) {
+                console.error('오류:', error);
+                alert('오류: ' + error.message);
+            }
+        }
+        
+        // 모달 닫기
+        function closeModal() {
+            document.getElementById('projectSummaryModal').style.display = 'none';
+        }
+        
+        // 페이지 로드 시 실행
+        window.onload = loadProjects;
+        
+        // 모달 외부 클릭 시 닫기
+        window.onclick = function(event) {
+            const modal = document.getElementById('projectSummaryModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

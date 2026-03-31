@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인 테스트</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .log {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h2>🔐 로그인 기능 테스트</h2>
+        <p>아래 정보로 로그인을 테스트합니다:</p>
+        
+        <input type="text" id="username" placeholder="사용자 이름" value="admin">
+        <input type="password" id="password" placeholder="비밀번호" value="ride2025!@">
+        <button onclick="testLogin()">로그인 테스트</button>
+        
+        <div class="log" id="log">
+            <div class="log-item info">테스트 준비됨</div>
+        </div>
+    </div>
+    
+    <script>
+        const ADMIN_CREDENTIALS = {
+            username: 'admin',
+            password: 'ride2025!@'
+        };
+        
+        const AUTH_SESSION_KEY = 'ride_admin_session';
+        const AUTH_EXPIRY_HOURS = 8;
+        
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('log');
+            const item = document.createElement('div');
+            item.className = `log-item ${type}`;
+            const time = new Date().toLocaleTimeString();
+            item.textContent = `[${time}] ${message}`;
+            log.appendChild(item);
+            log.scrollTop = log.scrollHeight;
+            console.log(`[${type}] ${message}`);
+        }
+        
+        function testLogin() {
+            addLog('=== 로그인 테스트 시작 ===', 'info');
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            addLog(`입력된 사용자 이름: "${username}"`, 'info');
+            addLog(`입력된 비밀번호: "${password}"`, 'info');
+            addLog(`기대 사용자 이름: "${ADMIN_CREDENTIALS.username}"`, 'info');
+            addLog(`기대 비밀번호: "${ADMIN_CREDENTIALS.password}"`, 'info');
+            
+            // 비교
+            const usernameMatch = username === ADMIN_CREDENTIALS.username;
+            const passwordMatch = password === ADMIN_CREDENTIALS.password;
+            
+            addLog(`사용자 이름 일치: ${usernameMatch}`, usernameMatch ? 'success' : 'error');
+            addLog(`비밀번호 일치: ${passwordMatch}`, passwordMatch ? 'success' : 'error');
+            
+            if (usernameMatch && passwordMatch) {
+                addLog('✅ 인증 성공!', 'success');
+                
+                // 세션 생성
+                const now = new Date().getTime();
+                const expiry = now + (AUTH_EXPIRY_HOURS * 60 * 60 * 1000);
+                
+                const sessionData = {
+                    username: username,
+                    loginTime: now,
+                    expiry: expiry
+                };
+                
+                localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(sessionData));
+                addLog('세션 저장 완료', 'success');
+                addLog(`만료 시간: ${new Date(expiry).toLocaleString()}`, 'info');
+                
+                // 세션 확인
+                const saved = localStorage.getItem(AUTH_SESSION_KEY);
+                if (saved) {
+                    addLog('✅ localStorage 저장 확인', 'success');
+                    addLog(`저장된 데이터: ${saved.substring(0, 100)}...`, 'info');
+                } else {
+                    addLog('❌ localStorage 저장 실패', 'error');
+                }
+                
+                setTimeout(() => {
+                    addLog('3초 후 admin.html로 이동...', 'info');
+                    setTimeout(() => {
+                        window.location.href = 'admin.html';
+                    }, 3000);
+                }, 1000);
+                
+            } else {
+                addLog('❌ 인증 실패', 'error');
+                if (!usernameMatch) {
+                    addLog('사용자 이름이 일치하지 않습니다', 'error');
+                }
+                if (!passwordMatch) {
+                    addLog('비밀번호가 일치하지 않습니다', 'error');
+                }
+            }
+        }
+        
+        // 페이지 로드 시 현재 세션 확인
+        window.addEventListener('load', function() {
+            const session = localStorage.getItem(AUTH_SESSION_KEY);
+            if (session) {
+                addLog('⚠️ 기존 세션 발견', 'info');
+                try {
+                    const data = JSON.parse(session);
+                    addLog(`사용자: ${data.username}`, 'info');
+                    addLog(`만료: ${new Date(data.expiry).toLocaleString()}`, 'info');
+                } catch (e) {
+                    addLog('세션 데이터 파싱 오류', 'error');
+                }
+            } else {
+                addLog('세션 없음 (깨끗한 상태)', 'success');
+            }
+        });
+    </script>
+</body>
+</html>

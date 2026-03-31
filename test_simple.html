@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>간단 테스트</title>
+</head>
+<body>
+    <h1>파일 보기 버튼 테스트</h1>
+    <button onclick="testFunction()">테스트 버튼 (onclick)</button>
+    
+    <div id="output"></div>
+    
+    <script src="projects.js"></script>
+    <script>
+        function testFunction() {
+            console.log('✅ testFunction 호출됨');
+            document.getElementById('output').innerHTML = '✅ onclick 작동!';
+        }
+        
+        // projects.js가 로드되었는지 확인
+        setTimeout(() => {
+            console.log('window.viewProjectSummary:', typeof window.viewProjectSummary);
+            console.log('projectsData:', window.projectsData ? projectsData.length : 'undefined');
+            
+            if (typeof window.viewProjectSummary === 'function') {
+                document.getElementById('output').innerHTML += '<br>✅ viewProjectSummary 함수 발견!';
+                
+                // 첫 번째 프로젝트 ID 찾기
+                if (projectsData && projectsData.length > 0) {
+                    const firstProject = projectsData.find(p => p.files && p.files.length > 0);
+                    if (firstProject) {
+                        document.getElementById('output').innerHTML += `<br>✅ 테스트 프로젝트: ${firstProject.title}`;
+                        document.getElementById('output').innerHTML += `<br><button onclick="window.viewProjectSummary('${firstProject.id}')">실제 파일 보기 테스트</button>`;
+                    }
+                }
+            } else {
+                document.getElementById('output').innerHTML += '<br>❌ viewProjectSummary 함수를 찾을 수 없음';
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
